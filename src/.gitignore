@@ -1,0 +1,45 @@
+# Laravel
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/logs/*
+/storage/pail
+
+# Env files
+.env
+.env.*
+/src/.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+/.idea
+/.vscode
+/.fleet
+/.zed
+
+# PHP / Tools
+.phpactor.json
+.phpunit.result.cache
+/.phpunit.cache
+_ide_helper.php
+
+# Laravel Sail / Homestead
+Homestead.json
+Homestead.yaml
+
+# Auth
+/auth.json
+
+# Docker
+docker/mysql
+*.pid
+*.sock

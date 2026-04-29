@@ -1,0 +1,339 @@
+CREATE DATABASE IF NOT EXISTS farmacia_vida
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE farmacia_vida;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ============================================================
+--  BLOQUE 1 — SEGURIDAD Y ACCESO (Sin Auditoría)
+-- ============================================================
+
+CREATE TABLE usuario (
+    id              INT             NOT NULL AUTO_INCREMENT,
+    nombre_completo VARCHAR(150)    NOT NULL,
+    username        VARCHAR(60)     NOT NULL,
+    password_hash   VARCHAR(255)    NOT NULL,
+    rol             ENUM('dueno','vendedor','medico') NOT NULL,
+    estado          ENUM('activo','inactivo')         NOT NULL DEFAULT 'activo',
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_usuario PRIMARY KEY (id),
+    CONSTRAINT uq_usuario_username UNIQUE (username)
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  BLOQUE 2 — CATÁLOGOS MAESTROS
+-- ============================================================
+
+CREATE TABLE categoria (
+    id          INT          NOT NULL AUTO_INCREMENT,
+    nombre      VARCHAR(80)  NOT NULL,
+    descripcion VARCHAR(200) NULL,
+    CONSTRAINT pk_categoria PRIMARY KEY (id),
+    CONSTRAINT uq_categoria_nombre UNIQUE (nombre)
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  BLOQUE 3 — PROVEEDORES E INVENTARIO (Normalizado 3NF)
+-- ============================================================
+
+CREATE TABLE proveedor (
+    id                 INT          NOT NULL AUTO_INCREMENT,
+    nombre_empresa     VARCHAR(120) NOT NULL,
+    nombre_contacto    VARCHAR(120) NOT NULL,
+    telefono           VARCHAR(20)  NOT NULL,
+    rfc                VARCHAR(13)  NULL,   
+    correo_electronico VARCHAR(100) NULL,   
+    estado             ENUM('activo','inactivo') NOT NULL DEFAULT 'activo',
+    CONSTRAINT pk_proveedor PRIMARY KEY (id),
+    CONSTRAINT uq_proveedor_empresa UNIQUE (nombre_empresa)
+) ENGINE=InnoDB;
+
+CREATE TABLE dia_visita_proveedor (
+    id           INT NOT NULL AUTO_INCREMENT,
+    proveedor_id INT NOT NULL,
+    dia_semana   ENUM('lun','mar','mie','jue','vie','sab','dom') NOT NULL,
+    CONSTRAINT pk_dia_visita PRIMARY KEY (id),
+    CONSTRAINT uq_dia_visita UNIQUE (proveedor_id, dia_semana),
+    CONSTRAINT fk_dia_visita_proveedor
+        FOREIGN KEY (proveedor_id) REFERENCES proveedor (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE producto (
+    id               INT             NOT NULL AUTO_INCREMENT,
+    proveedor_id     INT             NOT NULL,
+    categoria_id     INT             NOT NULL,
+    nombre           VARCHAR(150)    NOT NULL,
+    precio_compra    DECIMAL(10,2)   NOT NULL,
+    precio_venta     DECIMAL(10,2)   NOT NULL,
+    stock_total      INT             NOT NULL DEFAULT 0,    
+    stock_minimo     INT             NOT NULL DEFAULT 0,
+    requiere_receta  TINYINT(1)      NOT NULL DEFAULT 0,
+    estado           ENUM('activo','inactivo') NOT NULL DEFAULT 'activo',
+    CONSTRAINT pk_producto PRIMARY KEY (id),
+    CONSTRAINT uq_producto_nombre UNIQUE (nombre),
+    CONSTRAINT chk_precio_compra CHECK (precio_compra >= 0),
+    CONSTRAINT chk_precio_venta CHECK (precio_venta >= 0),
+    CONSTRAINT chk_stock_total CHECK (stock_total >= 0),
+    CONSTRAINT chk_stock_minimo CHECK (stock_minimo >= 0),
+    CONSTRAINT fk_producto_proveedor
+        FOREIGN KEY (proveedor_id) REFERENCES proveedor (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_producto_categoria
+        FOREIGN KEY (categoria_id) REFERENCES categoria (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE lote (
+    id                INT          NOT NULL AUTO_INCREMENT,
+    producto_id       INT          NOT NULL,
+    numero_lote       VARCHAR(50)  NOT NULL,
+    cantidad          INT          NOT NULL DEFAULT 0,
+    fecha_vencimiento DATE         NOT NULL,
+    fecha_ingreso     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_lote PRIMARY KEY (id),
+    CONSTRAINT chk_lote_cantidad CHECK (cantidad >= 0),
+    CONSTRAINT fk_lote_producto
+        FOREIGN KEY (producto_id) REFERENCES producto (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE kardex_producto (
+    id            INT  NOT NULL AUTO_INCREMENT,
+    producto_id   INT  NOT NULL,
+    usuario_id    INT  NOT NULL,
+    tipo          ENUM('entrada','salida','ajuste','venta','devolucion') NOT NULL,
+    cantidad      INT  NOT NULL,
+    referencia_id INT  NULL,
+    fecha_hora    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_kardex PRIMARY KEY (id),
+    CONSTRAINT chk_kardex_cantidad CHECK (cantidad <> 0),
+    CONSTRAINT fk_kardex_producto
+        FOREIGN KEY (producto_id) REFERENCES producto (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_kardex_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuario (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  BLOQUE 4 — PEDIDOS A PROVEEDORES
+-- ============================================================
+
+CREATE TABLE pedido (
+    id              INT          NOT NULL AUTO_INCREMENT,
+    proveedor_id    INT          NOT NULL,
+    usuario_id      INT          NOT NULL,
+    folio           VARCHAR(30)  NOT NULL,
+    fecha_estimada  DATE         NULL,
+    estado          ENUM('pendiente','recibido','pagado','cancelado') NOT NULL DEFAULT 'pendiente', 
+    monto_total     DECIMAL(10,2) NULL,
+    fecha_pago      DATE         NULL,
+    CONSTRAINT pk_pedido PRIMARY KEY (id),
+    CONSTRAINT uq_pedido_folio UNIQUE (folio),
+    CONSTRAINT fk_pedido_proveedor
+        FOREIGN KEY (proveedor_id) REFERENCES proveedor (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_pedido_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuario (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE detalle_pedido (
+    id                  INT NOT NULL AUTO_INCREMENT,
+    pedido_id           INT NOT NULL,
+    producto_id         INT NOT NULL,
+    cantidad_solicitada INT NOT NULL,
+    cantidad_recibida   INT NULL DEFAULT 0,
+    precio_compra_real  DECIMAL(10,2) NULL, 
+    CONSTRAINT pk_detalle_pedido PRIMARY KEY (id),
+    CONSTRAINT chk_cant_solicitada CHECK (cantidad_solicitada > 0),
+    CONSTRAINT chk_cant_recibida   CHECK (cantidad_recibida >= 0),
+    CONSTRAINT fk_det_pedido_pedido
+        FOREIGN KEY (pedido_id) REFERENCES pedido (id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_det_pedido_producto
+        FOREIGN KEY (producto_id) REFERENCES producto (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  BLOQUE 5 — VENTAS
+-- ============================================================
+
+CREATE TABLE venta (
+    id          INT           NOT NULL AUTO_INCREMENT,
+    vendedor_id INT           NOT NULL,
+    folio       VARCHAR(30)   NOT NULL,
+    fecha_hora  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total       DECIMAL(10,2) NOT NULL,
+    estado      ENUM('completada','cancelada') NOT NULL DEFAULT 'completada',
+    CONSTRAINT pk_venta PRIMARY KEY (id),
+    CONSTRAINT uq_venta_folio UNIQUE (folio),
+    CONSTRAINT chk_venta_total CHECK (total >= 0),
+    CONSTRAINT fk_venta_vendedor
+        FOREIGN KEY (vendedor_id) REFERENCES usuario (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE receta (
+    id            INT          NOT NULL AUTO_INCREMENT,
+    consulta_id   INT          NOT NULL,
+    venta_id      INT          NULL,
+    folio         VARCHAR(30)  NOT NULL,
+    indicaciones  TEXT         NULL,
+    fecha         DATE         NOT NULL,
+    estado_valida ENUM('activa','usada','vencida') NOT NULL DEFAULT 'activa',
+    CONSTRAINT pk_receta PRIMARY KEY (id),
+    CONSTRAINT uq_receta_folio UNIQUE (folio)
+) ENGINE=InnoDB;
+
+CREATE TABLE detalle_venta (
+    id               INT           NOT NULL AUTO_INCREMENT,
+    venta_id         INT           NOT NULL,
+    producto_id      INT           NOT NULL,
+    receta_id        INT           NULL,
+    cantidad         INT           NOT NULL,
+    precio_unitario  DECIMAL(10,2) NOT NULL,
+    descuento_manual DECIMAL(5,2)  NOT NULL DEFAULT 0.00,
+    CONSTRAINT pk_detalle_venta PRIMARY KEY (id),
+    CONSTRAINT chk_det_venta_cantidad CHECK (cantidad > 0),
+    CONSTRAINT chk_det_venta_precio   CHECK (precio_unitario >= 0),
+    CONSTRAINT chk_det_venta_descuento CHECK (descuento_manual BETWEEN 0 AND 100),
+    CONSTRAINT fk_det_venta_venta
+        FOREIGN KEY (venta_id) REFERENCES venta (id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_det_venta_producto
+        FOREIGN KEY (producto_id) REFERENCES producto (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_det_venta_receta
+        FOREIGN KEY (receta_id) REFERENCES receta (id)
+        ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  BLOQUE 6 — EXPEDIENTE CLÍNICO Y CONSULTAS
+-- ============================================================
+
+CREATE TABLE expediente_clinico (
+    id                    INT          NOT NULL AUTO_INCREMENT,
+    nombre_completo       VARCHAR(150) NOT NULL,
+    fecha_nacimiento      DATE         NOT NULL,
+    sexo                  ENUM('masculino','femenino','otro') NOT NULL,
+    tipo_sangre           VARCHAR(5)   NULL,
+    alergias              TEXT         NULL,
+    enfermedades_cronicas TEXT         NULL,
+    medicamentos_actuales TEXT         NULL,
+    antecedentes_familiares TEXT       NULL,
+    telefono              VARCHAR(20)  NULL,  
+    correo                VARCHAR(100) NULL,  
+    estado                ENUM('activo','archivado') NOT NULL DEFAULT 'activo',
+    CONSTRAINT pk_expediente PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE cita (
+    id              INT          NOT NULL AUTO_INCREMENT,
+    medico_id       INT          NOT NULL,
+    expediente_id   INT          NULL,
+    fecha           DATE         NOT NULL,
+    hora            TIME         NOT NULL,
+    motivo          VARCHAR(255) NOT NULL,
+    nombre_temporal VARCHAR(150) NULL,
+    estado          ENUM('programada','cancelada','reprogramada','completada') 
+                                 NOT NULL DEFAULT 'programada',
+    CONSTRAINT pk_cita PRIMARY KEY (id),
+    CONSTRAINT fk_cita_medico
+        FOREIGN KEY (medico_id) REFERENCES usuario (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_cita_expediente
+        FOREIGN KEY (expediente_id) REFERENCES expediente_clinico (id)
+        ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE consulta (
+    id                  INT           NOT NULL AUTO_INCREMENT,
+    expediente_id       INT           NOT NULL,
+    medico_id           INT           NOT NULL,
+    cita_id             INT           NULL,
+    motivo              TEXT          NOT NULL,
+    presion_arterial    VARCHAR(15)   NULL,
+    temperatura         DECIMAL(4,1)  NULL,
+    frecuencia_cardiaca INT           NULL,
+    peso                DECIMAL(5,2)  NULL,
+    talla               DECIMAL(4,2)  NULL,
+    sintomas            TEXT          NULL,
+    diagnostico         TEXT          NOT NULL,
+    estudios_solicitados TEXT         NULL,
+    tratamiento         TEXT          NULL,
+    notas_evolucion     TEXT          NULL,
+    tipo_consulta       ENUM('primera_vez','seguimiento','urgencia') NOT NULL,
+    costo               DECIMAL(10,2) NULL,
+    estado_pago         ENUM('pagado','pendiente','cortesia') NOT NULL DEFAULT 'pendiente',
+    proxima_cita        DATE          NULL,
+    fecha_hora          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_consulta PRIMARY KEY (id),
+    CONSTRAINT chk_consulta_costo CHECK (costo IS NULL OR costo >= 0),
+    CONSTRAINT fk_consulta_expediente
+        FOREIGN KEY (expediente_id) REFERENCES expediente_clinico (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_consulta_medico
+        FOREIGN KEY (medico_id) REFERENCES usuario (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_consulta_cita
+        FOREIGN KEY (cita_id) REFERENCES cita (id)
+        ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+ALTER TABLE receta
+    ADD CONSTRAINT fk_receta_consulta
+        FOREIGN KEY (consulta_id) REFERENCES consulta (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    ADD CONSTRAINT fk_receta_venta
+        FOREIGN KEY (venta_id) REFERENCES venta (id)
+        ON UPDATE CASCADE ON DELETE SET NULL;
+
+CREATE TABLE detalle_receta (
+    id                       INT          NOT NULL AUTO_INCREMENT,
+    receta_id                INT          NOT NULL,
+    producto_id              INT          NULL,
+    nombre_medicamento       VARCHAR(150) NOT NULL,
+    dosis                    VARCHAR(80)  NOT NULL,
+    frecuencia               VARCHAR(80)  NOT NULL,
+    duracion                 VARCHAR(80)  NOT NULL,
+    indicaciones_especificas TEXT         NULL,
+    CONSTRAINT pk_detalle_receta PRIMARY KEY (id),
+    CONSTRAINT fk_det_receta_receta
+        FOREIGN KEY (receta_id) REFERENCES receta (id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_det_receta_producto
+        FOREIGN KEY (producto_id) REFERENCES producto (id)
+        ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  ÍNDICES DE RENDIMIENTO ACTUALIZADOS
+-- ============================================================
+
+CREATE INDEX idx_producto_proveedor  ON producto (proveedor_id);
+CREATE INDEX idx_producto_categoria  ON producto (categoria_id);
+CREATE INDEX idx_producto_estado     ON producto (estado);
+CREATE INDEX idx_lote_producto       ON lote (producto_id);           
+CREATE INDEX idx_lote_vencimiento    ON lote (fecha_vencimiento);     
+CREATE INDEX idx_kardex_producto     ON kardex_producto (producto_id);
+CREATE INDEX idx_kardex_fecha        ON kardex_producto (fecha_hora);
+CREATE INDEX idx_pedido_proveedor    ON pedido (proveedor_id);
+CREATE INDEX idx_det_pedido          ON detalle_pedido (pedido_id);
+CREATE INDEX idx_venta_vendedor      ON venta (vendedor_id);
+CREATE INDEX idx_venta_fecha         ON venta (fecha_hora);
+CREATE INDEX idx_det_venta_venta     ON detalle_venta (venta_id);
+CREATE INDEX idx_cita_fecha          ON cita (fecha);
+CREATE INDEX idx_consulta_expediente ON consulta (expediente_id);
+CREATE INDEX idx_receta_consulta     ON receta (consulta_id);
+
+-- ============================================================
+--  DATOS INICIALES
+-- ============================================================
+
+INSERT INTO usuario (nombre_completo, username, password_hash, rol, estado)
+VALUES ('Administrador', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dueno', 'activo');

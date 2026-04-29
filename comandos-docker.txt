@@ -1,0 +1,45 @@
+comandos para Docker
+
+# ── ARRANCAR el proyecto ──
+docker-compose up -d
+
+# Encender el motor de Vite para que detecte tus cambios de diseño CSS/JS
+docker exec -d farmacia_node sh -c "npm run dev"
+
+# ── VER si los contenedores están corriendo ──
+docker-compose ps
+
+# ── DETENER el proyecto  ──
+docker-compose down
+
+# ── Ejecutar comandos de Artisan ──
+docker exec farmacia_php bash -c "cd /var/www/html && php artisan route:list"
+docker exec farmacia_php bash -c "cd /var/www/html && php artisan cache:clear"
+docker exec farmacia_php bash -c "cd /var/www/html && php artisan db:seed --force"
+
+# ── Instalar paquetes con Composer ──
+docker exec farmacia_php bash -c "cd /var/www/html && composer require nombre/paquete"
+
+# ── Instalar paquetes con NPM ──
+docker exec farmacia_node sh -c "cd /var/www/html && npm install"
+
+# ── VER logs si algo falla ──
+docker-compose logs php
+docker-compose logs nginx
+docker-compose logs mysql
+
+Usuario: admin
+Contraseña: password 
+
+Usuario: vendedor
+Contraseña: vendedor1234
+
+Usuario: medico
+Contraseña: medico1234
+
+
+Usuario: dueno
+Contraseña: dueno1234
+
+
+
