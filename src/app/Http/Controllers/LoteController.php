@@ -16,6 +16,12 @@ class LoteController extends Controller
             'numero_lote'       => 'required|string|max:50',
             'cantidad'          => 'required|integer|min:1',
             'fecha_vencimiento' => 'required|date|after:today',
+        ], [
+            'numero_lote.required'       => 'El número de lote es obligatorio.',
+            'cantidad.required'          => 'La cantidad es obligatoria.',
+            'cantidad.min'               => 'La cantidad debe ser al menos 1.',
+            'fecha_vencimiento.required' => 'La fecha de vencimiento es obligatoria.',
+            'fecha_vencimiento.after'    => 'La fecha de vencimiento debe ser posterior a hoy.',
         ]);
 
         $producto = Producto::findOrFail($productoId);

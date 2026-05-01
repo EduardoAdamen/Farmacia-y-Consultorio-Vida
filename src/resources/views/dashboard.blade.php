@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Panel de Inicio')
+@section('title', '¡Hola, ' . auth()->user()->nombre_completo . '!')
 
 @section('content')
 <div class="mb-4">
-    <h4 class="mb-1 fw-bold" style="font-family: 'Outfit', sans-serif;">Panel de Inicio</h4>
+    <h4 class="mb-1" style="font-family: 'Outfit', sans-serif; font-weight: normal;">¡Hola, <span class="fw-bold">{{ auth()->user()->nombre_completo }}</span>!</h4>
     <p style="font-size:13px;color:var(--color-text-muted);margin:0;text-transform:capitalize;">
         {{ now()->isoFormat('dddd, D [de] MMMM [de] YYYY') }}
     </p>

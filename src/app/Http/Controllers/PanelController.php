@@ -8,7 +8,7 @@ use App\Models\Venta;
 use App\Models\Consulta;
 use App\Models\Cita;
 
-class DashboardController extends Controller
+class PanelController extends Controller
 {
     public function index()
     {

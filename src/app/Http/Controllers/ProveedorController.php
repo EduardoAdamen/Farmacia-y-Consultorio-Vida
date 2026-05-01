@@ -30,6 +30,12 @@ class ProveedorController extends Controller
             'correo_electronico' => 'nullable|email|max:100',
             'dias_visita'        => 'nullable|array',
             'dias_visita.*'      => 'string|in:lun,mar,mie,jue,vie,sab,dom',
+        ], [
+            'nombre_empresa.required'     => 'El nombre de la empresa es obligatorio.',
+            'nombre_contacto.required'    => 'El nombre del contacto es obligatorio.',
+            'telefono.required'           => 'El teléfono es obligatorio.',
+            'correo_electronico.email'    => 'El correo electrónico no tiene un formato válido.',
+            'dias_visita.*.in'            => 'Uno de los días de visita seleccionados no es válido.',
         ]);
 
         DB::transaction(function() use ($request) {
@@ -81,6 +87,12 @@ class ProveedorController extends Controller
             'correo_electronico' => 'nullable|email|max:100',
             'dias_visita'        => 'nullable|array',
             'dias_visita.*'      => 'string|in:lun,mar,mie,jue,vie,sab,dom',
+        ], [
+            'nombre_empresa.required'     => 'El nombre de la empresa es obligatorio.',
+            'nombre_contacto.required'    => 'El nombre del contacto es obligatorio.',
+            'telefono.required'           => 'El teléfono es obligatorio.',
+            'correo_electronico.email'    => 'El correo electrónico no tiene un formato válido.',
+            'dias_visita.*.in'            => 'Uno de los días de visita seleccionados no es válido.',
         ]);
 
         DB::transaction(function() use ($request, $proveedor) {

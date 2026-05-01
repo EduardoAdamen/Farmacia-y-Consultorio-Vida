@@ -87,8 +87,23 @@ class ProductoController extends Controller
             'cantidad_inicial'  => 'nullable|integer|min:0',
             'fecha_vencimiento' => 'nullable|date|after:today',
         ], [
-            'sku.unique'    => 'El SKU ingresado ya existe en otro producto.',
-            'sku.required'  => 'El SKU / Código es obligatorio.',
+            'nombre.required'         => 'El nombre del producto es obligatorio.',
+            'nombre.unique'           => 'Este nombre de producto ya está registrado.',
+            'sku.required'            => 'El SKU / Código es obligatorio.',
+            'sku.unique'              => 'El SKU ingresado ya existe en otro producto.',
+            'categoria_id.required'   => 'Debe seleccionar una categoría.',
+            'categoria_id.exists'     => 'La categoría seleccionada no es válida.',
+            'proveedor_id.required'   => 'Debe seleccionar un proveedor.',
+            'proveedor_id.exists'     => 'El proveedor seleccionado no es válido.',
+            'precio_compra.required'  => 'El precio de compra es obligatorio.',
+            'precio_compra.numeric'   => 'El precio de compra debe ser un número.',
+            'precio_compra.min'       => 'El precio de compra no puede ser negativo.',
+            'precio_venta.required'   => 'El precio de venta es obligatorio.',
+            'precio_venta.numeric'    => 'El precio de venta debe ser un número.',
+            'precio_venta.min'        => 'El precio de venta no puede ser negativo.',
+            'stock_minimo.required'   => 'El stock mínimo es obligatorio.',
+            'stock_minimo.min'        => 'El stock mínimo no puede ser negativo.',
+            'fecha_vencimiento.after' => 'La fecha de vencimiento debe ser posterior a hoy.',
         ]);
 
         $producto = Producto::create([
@@ -155,8 +170,22 @@ class ProductoController extends Controller
             'stock_minimo'    => 'required|integer|min:0',
             'requiere_receta' => 'boolean',
         ], [
-            'sku.unique'   => 'El SKU ingresado ya existe en otro producto.',
-            'sku.required' => 'El SKU / Código es obligatorio.',
+            'nombre.required'         => 'El nombre del producto es obligatorio.',
+            'nombre.unique'           => 'Este nombre de producto ya está registrado.',
+            'sku.required'            => 'El SKU / Código es obligatorio.',
+            'sku.unique'              => 'El SKU ingresado ya existe en otro producto.',
+            'categoria_id.required'   => 'Debe seleccionar una categoría.',
+            'categoria_id.exists'     => 'La categoría seleccionada no es válida.',
+            'proveedor_id.required'   => 'Debe seleccionar un proveedor.',
+            'proveedor_id.exists'     => 'El proveedor seleccionado no es válido.',
+            'precio_compra.required'  => 'El precio de compra es obligatorio.',
+            'precio_compra.numeric'   => 'El precio de compra debe ser un número.',
+            'precio_compra.min'       => 'El precio de compra no puede ser negativo.',
+            'precio_venta.required'   => 'El precio de venta es obligatorio.',
+            'precio_venta.numeric'    => 'El precio de venta debe ser un número.',
+            'precio_venta.min'        => 'El precio de venta no puede ser negativo.',
+            'stock_minimo.required'   => 'El stock mínimo es obligatorio.',
+            'stock_minimo.min'        => 'El stock mínimo no puede ser negativo.',
         ]);
 
         $producto->update($request->only([

@@ -4,12 +4,12 @@
 @section('content')
 
 <div class="d-flex align-items-center gap-3 mb-4">
-    <a href="{{ route('dashboard') }}" class="topbar-icon-btn" title="Volver al panel">
+    <a href="{{ route('panel-inicio') }}" class="topbar-icon-btn" title="Volver al panel">
         <i data-lucide="arrow-left" style="width:20px;height:20px;"></i>
     </a>
     <div>
-        <h5 class="mb-0" style="font-family:'Outfit',sans-serif;font-weight:700;">Cambiar Contraseña</h5>
-        <p style="font-size:13px;color:var(--color-text-muted);margin:0;">Actualiza tu contraseña de acceso al sistema.</p>
+        
+        <p style="font-size:13px;color:var(--color-text-muted);margin:0;">Volver al panel</p>
     </div>
 </div>
 
@@ -18,7 +18,7 @@
         <div class="card">
             <div class="card-header py-3 px-4">
                 <span class="d-flex align-items-center gap-2">
-                    <i data-lucide="lock" style="width:16px;height:16px;color:var(--color-accent);"></i>
+                   
                     Nueva contraseña
                 </span>
             </div>
@@ -30,7 +30,7 @@
                         <label class="form-label" for="password_actual">Contraseña actual <span style="color:var(--color-danger);">*</span></label>
                         <input type="password" id="password_actual" name="password_actual"
                                class="form-control @error('password_actual') is-invalid @enderror"
-                               placeholder="••••••••"
+                               placeholder="Escribe tu contraseña actual"
                                autocomplete="current-password">
                         @error('password_actual')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -58,7 +58,7 @@
 
                     <div style="font-size:12px;color:var(--color-text-muted);background:#F8FAFC;border-radius:8px;padding:10px 14px;margin-bottom:20px;border:1px solid var(--color-border);">
                         <div class="d-flex align-items-center gap-2 mb-1">
-                            <i data-lucide="shield" style="width:13px;height:13px;color:var(--color-accent);"></i>
+                           
                             <strong>Requisitos de seguridad</strong>
                         </div>
                         <ul class="mb-0 ps-3" style="line-height:1.8;">
@@ -72,7 +72,7 @@
                             <i data-lucide="lock" style="width:15px;height:15px;"></i>
                             Actualizar Contraseña
                         </button>
-                        <a href="{{ route('dashboard') }}" class="btn btn-ghost" style="border-radius:8px;padding:9px 16px;font-size:13px;">
+                        <a href="{{ route('panel-inicio') }}" class="btn btn-ghost" style="border-radius:8px;padding:9px 16px;font-size:13px;">
                             Cancelar
                         </a>
                     </div>

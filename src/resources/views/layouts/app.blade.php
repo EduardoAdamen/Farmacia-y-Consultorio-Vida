@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -320,7 +320,7 @@
 
     <div class="mt-1 pb-4 flex-grow-1">
         <div class="nav-section">Principal</div>
-        <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <a href="{{ route('panel-inicio') }}" class="nav-link {{ request()->routeIs('panel-inicio') ? 'active' : '' }}">
             <i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i> Panel de Inicio
         </a>
 

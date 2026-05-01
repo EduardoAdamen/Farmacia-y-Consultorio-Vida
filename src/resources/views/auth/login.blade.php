@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión — Farmacia Vida</title>
+    <title>Iniciar Sesión</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -73,7 +73,7 @@
         <i data-lucide="cross" style="width:28px;height:28px;"></i>
     </div>
     <div class="login-title">Farmacia Vida</div>
-    <div class="login-subtitle">Acceso al sistema de gestión</div>
+   
 
     @if(session('success'))
         <div class="alert alert-success py-2 px-3 mb-3" style="font-size:13px;border-radius:8px;">
@@ -98,15 +98,12 @@
         <div class="mb-4">
             <label class="form-label">Contraseña</label>
             <input type="password" name="password" class="form-control"
-                   placeholder="••••••••"
+                   placeholder="Ingresa tu contraseña"
                    autocomplete="current-password" required>
         </div>
         <button type="submit" class="btn-login">Iniciar Sesión</button>
     </form>
-    <div class="sesion-segura">
-        <i data-lucide="lock" style="width:12px;height:12px;"></i>
-        Sesión segura
-    </div>
+    
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>lucide.createIcons();</script>

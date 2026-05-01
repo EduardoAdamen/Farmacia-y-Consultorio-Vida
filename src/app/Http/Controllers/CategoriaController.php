@@ -23,6 +23,11 @@ class CategoriaController extends Controller
         $request->validate([
             'nombre'      => 'required|string|max:100|unique:categoria,nombre',
             'descripcion' => 'nullable|string|max:255',
+        ], [
+            'nombre.required' => 'El nombre de la categoría es obligatorio.',
+            'nombre.unique'   => 'Este nombre de categoría ya está registrado.',
+            'nombre.max'      => 'El nombre no puede exceder los 100 caracteres.',
+            'descripcion.max' => 'La descripción no puede exceder los 255 caracteres.',
         ]);
 
         Categoria::create($request->only(['nombre', 'descripcion']));
@@ -44,6 +49,11 @@ class CategoriaController extends Controller
         $request->validate([
             'nombre'      => "required|string|max:100|unique:categoria,nombre,{$id}",
             'descripcion' => 'nullable|string|max:255',
+        ], [
+            'nombre.required' => 'El nombre de la categoría es obligatorio.',
+            'nombre.unique'   => 'Este nombre de categoría ya está registrado.',
+            'nombre.max'      => 'El nombre no puede exceder los 100 caracteres.',
+            'descripcion.max' => 'La descripción no puede exceder los 255 caracteres.',
         ]);
 
         $categoria->update($request->only(['nombre', 'descripcion']));

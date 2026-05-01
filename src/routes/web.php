@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\UsuarioController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PanelController;
 
 // ── Autenticación ──────────────────────────────────────────
 Route::get('/',       [LoginController::class, 'showLoginForm'])->name('login');
@@ -14,8 +14,8 @@ Route::post('/logout',[LoginController::class, 'logout'])->name('logout');
 // ── Área autenticada ───────────────────────────────────────
 Route::middleware(['auth', 'sesion.activa'])->group(function () {
 
-    // Dashboard / Panel de Inicio (CU-02)
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Panel de Inicio (CU-02)
+    Route::get('/panel-inicio', [PanelController::class, 'index'])->name('panel-inicio');
 
     // Cambiar contraseña propia (FA_004 de CU-03)
     Route::get('/perfil/password',   [UsuarioController::class, 'showCambiarPassword'])->name('perfil.password');

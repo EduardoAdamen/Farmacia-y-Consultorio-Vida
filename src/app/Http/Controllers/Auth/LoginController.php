@@ -13,7 +13,7 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('panel-inicio');
         }
         return view('auth.login');
     }
@@ -43,7 +43,7 @@ class LoginController extends Controller
         $request->session()->regenerate();
         session(['ultima_actividad' => time()]);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('panel-inicio');
     }
 
     public function logout(Request $request)
