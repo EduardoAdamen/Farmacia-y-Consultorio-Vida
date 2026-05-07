@@ -88,4 +88,47 @@ Route::middleware(['auth', 'sesion.activa'])->group(function () {
         Route::patch('/{id}/cancelar',     [\App\Http\Controllers\VentaController::class, 'cancelar'])->name('cancelar')->middleware('rol:dueno');
     });
 
+    // Citas Médicas
+    Route::middleware('rol:medico,vendedor,dueno')->prefix('citas')->name('citas.')->group(function () {
+        Route::get('/',                          [\App\Http\Controllers\CitaController::class, 'index'])->name('index');
+        Route::get('/crear',                     [\App\Http\Controllers\CitaController::class, 'create'])->name('create');
+        Route::post('/',                         [\App\Http\Controllers\CitaController::class, 'store'])->name('store');
+        Route::get('/verificar-disponibilidad',  [\App\Http\Controllers\CitaController::class, 'verificarDisponibilidad'])->name('verificar-disponibilidad');
+        Route::get('/{id}',                      [\App\Http\Controllers\CitaController::class, 'show'])->name('show');
+        Route::get('/{id}/editar',               [\App\Http\Controllers\CitaController::class, 'edit'])->name('edit');
+        Route::put('/{id}',                      [\App\Http\Controllers\CitaController::class, 'update'])->name('update');
+    });
+
+    // Expedientes y Consultas
+    Route::middleware('rol:medico,dueno')->group(function () {
+        // Expedientes (CU-11)
+        Route::prefix('expedientes')->name('expedientes.')->group(function () {
+            Route::get('/',              [\App\Http\Controllers\ExpedienteController::class, 'index'])->name('index');
+            Route::get('/crear',         [\App\Http\Controllers\ExpedienteController::class, 'create'])->name('create');
+            Route::post('/',             [\App\Http\Controllers\ExpedienteController::class, 'store'])->name('store');
+            Route::get('/{id}',          [\App\Http\Controllers\ExpedienteController::class, 'show'])->name('show');
+            Route::get('/{id}/editar',   [\App\Http\Controllers\ExpedienteController::class, 'edit'])->name('edit');
+            Route::put('/{id}',          [\App\Http\Controllers\ExpedienteController::class, 'update'])->name('update');
+            Route::patch('/{id}/archivar',[\App\Http\Controllers\ExpedienteController::class, 'archivar'])->name('archivar');
+        });
+
+        // Consultas (CU-12)
+        Route::prefix('consultas')->name('consultas.')->group(function () {
+            Route::get('/nueva',         [\App\Http\Controllers\ConsultaController::class, 'create'])->name('create');
+            Route::post('/',             [\App\Http\Controllers\ConsultaController::class, 'store'])->name('store');
+            Route::get('/{id}',          [\App\Http\Controllers\ConsultaController::class, 'show'])->name('show');
+            Route::get('/{id}/editar',   [\App\Http\Controllers\ConsultaController::class, 'edit'])->name('edit');
+            Route::put('/{id}',          [\App\Http\Controllers\ConsultaController::class, 'update'])->name('update');
+            Route::patch('/{id}/notas',  [\App\Http\Controllers\ConsultaController::class, 'updateNotas'])->name('update-notas');
+        });
+    });
+
+    // Reportes (Sprint 8)
+    Route::middleware('rol:dueno')->prefix('reportes')->name('reportes.')->group(function () {
+        Route::get('/',           [\App\Http\Controllers\ReporteController::class, 'index'])->name('index');
+        Route::get('/ventas',     [\App\Http\Controllers\ReporteController::class, 'ventas'])->name('ventas');
+        Route::get('/consultas',  [\App\Http\Controllers\ReporteController::class, 'consultas'])->name('consultas');
+        Route::get('/inventario', [\App\Http\Controllers\ReporteController::class, 'inventario'])->name('inventario');
+    });
+
 });
