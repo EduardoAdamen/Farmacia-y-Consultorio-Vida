@@ -58,10 +58,10 @@
                             <a href="{{ route('proveedores.edit', $prov->id) }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width:32px;height:32px;" title="Editar">
                                 <i data-lucide="edit" style="width:16px;height:16px;"></i>
                             </a>
-                            <form action="{{ route('proveedores.destroy', $prov->id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este proveedor?');" class="mb-0">
+                            <form action="{{ route('proveedores.destroy', $prov->id) }}" method="POST" class="mb-0 form-delete">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center" style="width:32px;height:32px;" title="Eliminar">
+                                <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center btn-submit-delete" style="width:32px;height:32px;" title="Eliminar">
                                     <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
                                 </button>
                             </form>
@@ -81,3 +81,29 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-submit-delete').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Eliminar Proveedor?',
+                    text: 'Esta acción no se puede deshacer.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F43F5E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

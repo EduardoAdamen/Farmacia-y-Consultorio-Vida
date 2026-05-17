@@ -80,10 +80,10 @@
                                 <i data-lucide="edit" style="width:16px;height:16px;"></i>
                             </a>
                             @if($exp->estado === 'activo')
-                            <form action="{{ route('expedientes.archivar', $exp->id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas archivar este expediente?');" class="mb-0">
+                            <form action="{{ route('expedientes.archivar', $exp->id) }}" method="POST" class="mb-0 form-archivar">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center" style="width:32px;height:32px;" title="Archivar">
+                                <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center btn-submit-archivar" style="width:32px;height:32px;" title="Archivar">
                                     <i data-lucide="archive" style="width:16px;height:16px;"></i>
                                 </button>
                             </form>
@@ -109,3 +109,29 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-submit-archivar').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Archivar Expediente?',
+                    text: 'El expediente se archivará pero conservará su historial clínico.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F43F5E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, archivar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

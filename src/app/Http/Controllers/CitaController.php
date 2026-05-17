@@ -121,7 +121,7 @@ class CitaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'medico_id'      => 'required|exists:usuario,id',
+            'medico_id'      => ['required', \Illuminate\Validation\Rule::exists('usuario', 'id')->where('rol', 'medico')],
             'fecha'          => 'required|date|after_or_equal:today', // No se pueden agendar citas en el pasado
             'hora'           => 'required',
             'motivo'         => 'required|string',

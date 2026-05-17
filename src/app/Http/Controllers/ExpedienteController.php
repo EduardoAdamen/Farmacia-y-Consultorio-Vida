@@ -77,10 +77,8 @@ class ExpedienteController extends Controller
     {
         $expediente = ExpedienteClinico::findOrFail($id);
 
-        // Carga el historial de consultas del paciente con su médico, de la más reciente a la más antigua
-        $consultas = $expediente->consultas()->with('medico')->orderByDesc('fecha_hora')->paginate(10);
-
-        // Asignamos las recetas (en la vista se usarán desde consultas, o bien cargamos directamente desde las consultas)
+        // Carga el historial de consultas del paciente con su médico y recetas, de la más reciente a la más antigua
+        $consultas = $expediente->consultas()->with(['medico', 'recetas'])->orderByDesc('fecha_hora')->paginate(10);
         // Aunque el CU dice: ficha completa + historial de consultas + lista de recetas.
         // Si no hay tabla receta intermedia desde expediente, las traemos por consulta.
 
@@ -129,5 +127,38 @@ class ExpedienteController extends Controller
         $expediente->update(['estado' => 'archivado']);
 
         return back()->with('success', 'El expediente ha sido archivado.');
+    }
+
+    // Desarchiva un expediente clínico devolviéndolo a estado activo
+    public function desarchivar($id)
+    {
+        $expediente = ExpedienteClinico::findOrFail($id);
+        $expediente->update(['estado' => 'activo']);
+
+        return back()->with('success', 'El expediente ha sido restaurado (activo).');
+    }
+
+    // Busca expedientes por nombre, teléfono o ID para autocompletado en citas
+    public function buscarAjax(Request $request)
+    {
+        $query = $request->q;
+        
+        if (empty($query)) {
+            return response()->json([]);
+        }
+
+        $expedientes = ExpedienteClinico::where('estado', 'activo')
+            ->where(function($q) use ($query) {
+                $q->where('nombre_completo', 'like', "%{$query}%")
+                  ->orWhere('telefono', 'like', "%{$query}%");
+                  
+                if (is_numeric($query)) {
+                    $q->orWhere('id', $query);
+                }
+            })
+            ->limit(10)
+            ->get();
+
+        return response()->json($expedientes);
     }
 }

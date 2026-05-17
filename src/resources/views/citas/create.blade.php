@@ -59,10 +59,14 @@
                     <div class="text-muted" style="font-size: 12px; margin-bottom: 8px;">Seleccione un expediente existente o ingrese un nombre temporal si es paciente de primera vez sin expediente.</div>
                     
                     <div class="row g-2">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <input type="text" class="form-control" id="buscar_expediente" placeholder="Buscar expediente (ID o nombre)..." autocomplete="off">
                             <input type="hidden" name="expediente_id" id="expediente_id" value="{{ old('expediente_id') }}">
                             <div id="resultado_expediente" class="mt-2 text-success fw-bold" style="font-size: 13px;"></div>
+                            
+                            {{-- Contenedor de resultados flotante --}}
+                            <div id="dropdown_resultados" class="list-group position-absolute w-100 d-none shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; margin-top: 2px;">
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <input type="text" name="nombre_temporal" id="nombre_temporal" class="form-control @error('nombre_temporal') is-invalid @enderror" value="{{ old('nombre_temporal') }}" placeholder="Nombre temporal (si no hay expediente)">
@@ -148,22 +152,59 @@
             }
         });
 
-        // Búsqueda simple de expediente mock (para completar CU-09)
-        // Normalmente sería un AJAX al ExpedienteController, aquí simulamos que el usuario teclea
-        // un ID si lo sabe o dejamos que el backend lo valide.
+        // Búsqueda AJAX de expedientes
         const inputBuscar = document.getElementById('buscar_expediente');
         const inputId = document.getElementById('expediente_id');
         const resExpediente = document.getElementById('resultado_expediente');
+        const dropdownResultados = document.getElementById('dropdown_resultados');
+        let debounceTimerExp;
         
         inputBuscar.addEventListener('input', function() {
-            // Simularemos que al teclear ID se asigna
-            const val = this.value.trim();
-            if(!isNaN(val) && val.length > 0) {
-                inputId.value = val;
-                resExpediente.textContent = 'Expediente ID: ' + val + ' seleccionado.';
-            } else {
+            clearTimeout(debounceTimerExp);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                dropdownResultados.classList.add('d-none');
+                dropdownResultados.innerHTML = '';
                 inputId.value = '';
                 resExpediente.textContent = '';
+                return;
+            }
+
+            debounceTimerExp = setTimeout(() => {
+                fetch(`{{ route('expedientes.buscar-ajax') }}?q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        dropdownResultados.innerHTML = '';
+                        if (data.length === 0) {
+                            dropdownResultados.innerHTML = '<div class="list-group-item text-muted" style="font-size:13px;">No se encontraron expedientes.</div>';
+                        } else {
+                            data.forEach(exp => {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'list-group-item list-group-item-action p-2 text-start';
+                                btn.innerHTML = `
+                                    <div class="fw-bold" style="font-size:14px; color:var(--color-primary);">${exp.nombre_completo}</div>
+                                    <div class="text-muted" style="font-size:12px;">ID: ${exp.id.toString().padStart(5, '0')} | Tel: ${exp.telefono || 'N/E'}</div>
+                                `;
+                                btn.addEventListener('click', () => {
+                                    inputId.value = exp.id;
+                                    inputBuscar.value = exp.nombre_completo;
+                                    resExpediente.textContent = `Expediente seleccionado: ${exp.nombre_completo} (ID: ${exp.id.toString().padStart(5, '0')})`;
+                                    dropdownResultados.classList.add('d-none');
+                                });
+                                dropdownResultados.appendChild(btn);
+                            });
+                        }
+                        dropdownResultados.classList.remove('d-none');
+                    });
+            }, 300);
+        });
+
+        // Ocultar dropdown al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!inputBuscar.contains(e.target) && !dropdownResultados.contains(e.target)) {
+                dropdownResultados.classList.add('d-none');
             }
         });
     });

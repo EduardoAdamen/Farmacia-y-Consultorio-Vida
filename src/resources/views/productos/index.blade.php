@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h5 class="mb-1" style="font-family:'Outfit',sans-serif;font-weight:700;">Catálogo de Productos</h5>
+        <h5 class="mb-1" style="font-family:'Outfit',sans-serif;font-weight:700;">Inventario de Productos</h5>
         <p style="font-size:13px;color:var(--color-text-muted);margin:0;">Administra los productos, stocks y lotes.</p>
     </div>
     @if(auth()->user()->rol === 'dueno')
@@ -139,11 +139,10 @@
                                     <i data-lucide="pencil" style="width:14px;height:14px;"></i> Editar
                                 </a>
                                 @if($prod->estado === 'activo')
-                                    <form action="{{ route('productos.destroy', $prod->id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas dar de baja este producto?');">
+                                    <form action="{{ route('productos.destroy', $prod->id) }}" method="POST" class="mb-0 form-delete-producto">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-ghost btn-sm d-flex align-items-center gap-1"
-                                                style="font-size:12px;border-radius:6px;padding:5px 10px;">
+                                        <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center btn-submit-delete" style="width:32px;height:32px;" title="Dar de Baja">
                                             <i data-lucide="trash-2" style="width:14px;height:14px;color:var(--color-danger);"></i>
                                         </button>
                                     </form>
@@ -168,3 +167,29 @@
     {{ $productos->links() }}
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-submit-delete').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Dar de baja producto?',
+                    text: 'El producto pasará a inactivo y ya no se mostrará en el punto de venta.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F43F5E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, dar de baja',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

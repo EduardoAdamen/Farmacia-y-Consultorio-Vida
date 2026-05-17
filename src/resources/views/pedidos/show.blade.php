@@ -66,10 +66,10 @@
                 <h6 style="font-family:'Outfit',sans-serif;font-weight:700;margin:0;">Detalles del Pedido</h6>
                 
                 @if($pedido->estado == 'pendiente')
-                <form action="{{ route('pedidos.cancelar', $pedido->id) }}" method="POST" onsubmit="return confirm('¿Confirma la cancelación de este pedido?');">
+                <form action="{{ route('pedidos.cancelar', $pedido->id) }}" method="POST" class="form-cancelar-pedido">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
+                    <button type="button" class="btn btn-outline-danger d-flex align-items-center gap-2 btn-submit-cancelar">
                         <i data-lucide="x-circle" style="width:14px;height:14px;"></i> Cancelar Pedido
                     </button>
                 </form>
@@ -120,7 +120,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end mt-3">
-                        <button type="submit" class="btn btn-accent px-4 d-flex align-items-center gap-2" onclick="return confirm('¿Confirmar recepción e ingreso a inventario?');">
+                        <button type="button" class="btn btn-accent px-4 d-flex align-items-center gap-2 btn-submit-recepcion">
                             <i data-lucide="package-check" style="width:16px;height:16px;"></i> Registrar Recepción
                         </button>
                     </div>
@@ -168,7 +168,7 @@
                             <label class="form-label" style="font-size:12px;font-weight:600;text-transform:uppercase;">Fecha en la que se realizó el pago</label>
                             <input type="date" name="fecha_pago" class="form-control" value="{{ date('Y-m-d') }}" required>
                         </div>
-                        <button type="submit" class="btn btn-success d-flex align-items-center gap-2" style="font-weight:600;" onclick="return confirm('¿Marcar pedido como pagado al proveedor?');">
+                        <button type="button" class="btn btn-success d-flex align-items-center gap-2 btn-submit-pago" style="font-weight:600;">
                             <i data-lucide="check-square" style="width:16px;height:16px;"></i> Registrar Pago
                         </button>
                     </form>
@@ -227,3 +227,72 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnCancelar = document.querySelector('.btn-submit-cancelar');
+        if(btnCancelar) {
+            btnCancelar.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Cancelar Pedido?',
+                    text: 'El pedido pasará a estado cancelado.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F43F5E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, cancelar',
+                    cancelButtonText: 'No'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        }
+
+        const btnRecepcion = document.querySelector('.btn-submit-recepcion');
+        if(btnRecepcion) {
+            btnRecepcion.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Confirmar Recepción?',
+                    text: 'Los productos ingresarán al inventario automáticamente.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0D9488',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, confirmar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        }
+
+        const btnPago = document.querySelector('.btn-submit-pago');
+        if(btnPago) {
+            btnPago.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Marcar como Pagado?',
+                    text: 'Este pedido se registrará como pagado al proveedor.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#22C55E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, marcar pagado',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
+@endpush

@@ -15,6 +15,9 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
@@ -319,22 +322,20 @@
     </div>
 
     <div class="mt-1 pb-4 flex-grow-1">
-        <div class="nav-section">Principal</div>
         <a href="{{ route('panel-inicio') }}" class="nav-link {{ request()->routeIs('panel-inicio') ? 'active' : '' }}">
             <i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i> Panel de Inicio
         </a>
 
         @if(in_array(auth()->user()->rol, ['dueno', 'vendedor']))
-        <div class="nav-section">Farmacia</div>
         <a href="{{ Route::has('ventas.index') ? route('ventas.index') : '#' }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
             <i data-lucide="shopping-cart" style="width:18px;height:18px;"></i> Ventas
         </a>
         <a href="{{ Route::has('productos.index') ? route('productos.index') : '#' }}" class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}">
             <i data-lucide="package" style="width:18px;height:18px;"></i> Inventario
         </a>
-          <a href="{{ Route::has('categorias.index') ? route('categorias.index') : '#' }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
-              <i data-lucide="tags" style="width:18px;height:18px;"></i> Categorías
-          </a>
+        <a href="{{ Route::has('categorias.index') ? route('categorias.index') : '#' }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
+            <i data-lucide="tags" style="width:18px;height:18px;"></i> Categorías
+        </a>
         @endif
         
         @if(auth()->user()->rol === 'dueno')
@@ -347,9 +348,8 @@
         @endif
 
         @if(in_array(auth()->user()->rol, ['dueno', 'medico', 'vendedor']))
-        <div class="nav-section">Consultorio</div>
         <a href="{{ Route::has('citas.index') ? route('citas.index') : '#' }}" class="nav-link {{ request()->routeIs('citas.*') ? 'active' : '' }}">
-            <i data-lucide="calendar-days" style="width:18px;height:18px;"></i> Agenda / Citas
+            <i data-lucide="calendar-days" style="width:18px;height:18px;"></i> Agenda
         </a>
         @endif
 
@@ -360,7 +360,6 @@
         @endif
 
         @if(auth()->user()->rol === 'dueno')
-        <div class="nav-section">Administración</div>
         <a href="{{ Route::has('usuarios.index') ? route('usuarios.index') : '#' }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
             <i data-lucide="users" style="width:18px;height:18px;"></i> Usuarios
         </a>
@@ -407,26 +406,36 @@
 
 {{-- CONTENIDO PRINCIPAL --}}
 <main id="main-content">
-    
     @if(session('success'))
-        <div class="alert-success-custom mb-4">
-            <i data-lucide="check-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
-            {{ session('success') }}
-        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: "{!! addslashes(session('success')) !!}",
+                    icon: 'success',
+                    confirmButtonColor: '#0D9488',
+                    confirmButtonText: 'Aceptar'
+                });
+            });
+        </script>
     @endif
 
-    @if(session('error'))
-        <div class="alert-danger-custom mb-4">
-            <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
-            {{ session('error') }}
-        </div>
-    @endif
-
-    @if($errors->any() && !session('success'))
-        <div class="alert-danger-custom mb-4">
-            <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
-            {{ $errors->first() }}
-        </div>
+    @if(session('error') || $errors->any())
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                let errorMessage = "{!! session('error') ? addslashes(session('error')) : '' !!}";
+                @if($errors->any())
+                    errorMessage = "{!! addslashes(implode('<br>', $errors->all())) !!}";
+                @endif
+                Swal.fire({
+                    title: 'Atención',
+                    html: errorMessage,
+                    icon: 'error',
+                    confirmButtonColor: '#F43F5E',
+                    confirmButtonText: 'Aceptar'
+                });
+            });
+        </script>
     @endif
 
     @yield('content')

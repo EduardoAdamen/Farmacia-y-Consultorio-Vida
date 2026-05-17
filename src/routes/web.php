@@ -99,27 +99,38 @@ Route::middleware(['auth', 'sesion.activa'])->group(function () {
         Route::put('/{id}',                      [\App\Http\Controllers\CitaController::class, 'update'])->name('update');
     });
 
-    // Expedientes y Consultas
+    // Expedientes Clínicos
     Route::middleware('rol:medico,dueno')->group(function () {
-        // Expedientes (CU-11)
         Route::prefix('expedientes')->name('expedientes.')->group(function () {
             Route::get('/',              [\App\Http\Controllers\ExpedienteController::class, 'index'])->name('index');
+            Route::get('/buscar',        [\App\Http\Controllers\ExpedienteController::class, 'buscarAjax'])->name('buscar-ajax');
             Route::get('/crear',         [\App\Http\Controllers\ExpedienteController::class, 'create'])->name('create');
             Route::post('/',             [\App\Http\Controllers\ExpedienteController::class, 'store'])->name('store');
             Route::get('/{id}',          [\App\Http\Controllers\ExpedienteController::class, 'show'])->name('show');
             Route::get('/{id}/editar',   [\App\Http\Controllers\ExpedienteController::class, 'edit'])->name('edit');
             Route::put('/{id}',          [\App\Http\Controllers\ExpedienteController::class, 'update'])->name('update');
             Route::patch('/{id}/archivar',[\App\Http\Controllers\ExpedienteController::class, 'archivar'])->name('archivar');
+            Route::patch('/{id}/desarchivar',[\App\Http\Controllers\ExpedienteController::class, 'desarchivar'])->name('desarchivar');
         });
 
-        // Consultas (CU-12)
+        // Vistas de lectura para Consultas y Recetas (Dueño y Médico)
+        Route::get('/consultas/{id}', [\App\Http\Controllers\ConsultaController::class, 'show'])->name('consultas.show');
+        Route::get('/recetas/{id}/imprimir', [\App\Http\Controllers\RecetaController::class, 'imprimir'])->name('recetas.imprimir');
+    });
+
+    // Operaciones Clínicas Exclusivas (Solo Médico)
+    Route::middleware('rol:medico')->group(function () {
         Route::prefix('consultas')->name('consultas.')->group(function () {
             Route::get('/nueva',         [\App\Http\Controllers\ConsultaController::class, 'create'])->name('create');
             Route::post('/',             [\App\Http\Controllers\ConsultaController::class, 'store'])->name('store');
-            Route::get('/{id}',          [\App\Http\Controllers\ConsultaController::class, 'show'])->name('show');
             Route::get('/{id}/editar',   [\App\Http\Controllers\ConsultaController::class, 'edit'])->name('edit');
             Route::put('/{id}',          [\App\Http\Controllers\ConsultaController::class, 'update'])->name('update');
             Route::patch('/{id}/notas',  [\App\Http\Controllers\ConsultaController::class, 'updateNotas'])->name('update-notas');
+        });
+
+        Route::prefix('recetas')->name('recetas.')->group(function () {
+            Route::get('/consulta/{consultaId}/crear', [\App\Http\Controllers\RecetaController::class, 'create'])->name('create');
+            Route::post('/consulta/{consultaId}',      [\App\Http\Controllers\RecetaController::class, 'store'])->name('store');
         });
     });
 

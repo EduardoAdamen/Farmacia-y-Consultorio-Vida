@@ -29,12 +29,11 @@
         </button>
 
         @if(auth()->user()->rol === 'dueno' && $venta->estado === 'completada')
-        <form method="POST" action="{{ route('ventas.cancelar', $venta->id) }}" onsubmit="return confirm('¿Está seguro de querer cancelar esta venta? El stock se revertirá de forma permanente.');">
+        <form method="POST" action="{{ route('ventas.cancelar', $venta->id) }}" class="form-cancelar-venta">
             @csrf
             @method('PATCH')
-            <button type="submit" class="btn btn-outline-danger w-100 d-flex justify-content-center align-items-center gap-2">
-                <i data-lucide="x-circle" style="width:18px;height:18px;"></i>
-                Cancelar Venta (Revertir Stock)
+            <button type="button" class="btn btn-outline-danger d-flex align-items-center gap-2 btn-submit-cancelar" style="font-weight:600;font-size:13px;border-radius:8px;">
+                <i data-lucide="x-circle" style="width:16px;height:16px;"></i> Cancelar Venta
             </button>
         </form>
         @endif
@@ -134,6 +133,33 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnCancelar = document.querySelector('.btn-submit-cancelar');
+        if(btnCancelar) {
+            btnCancelar.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Cancelar Venta?',
+                    text: 'El stock se revertirá de forma permanente y la venta quedará cancelada.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F43F5E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, cancelar venta',
+                    cancelButtonText: 'No, mantener'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
+@endpush
 @endsection
 
 @push('scripts')

@@ -22,6 +22,7 @@ class VentaService
         return DB::transaction(function () use ($items, $montoRecibido) {
             $total  = 0;
             $lineas = [];
+            $recetasUsadas = [];
 
             foreach ($items as $item) {
                 $producto = Producto::lockForUpdate()->findOrFail($item['id']);
@@ -37,14 +38,31 @@ class VentaService
                     if (empty($item['receta_folio'])) {
                         throw new \Exception("El producto '{$producto->nombre}' requiere receta médica válida.");
                     }
-                    $receta = Receta::where('folio', $item['receta_folio'])
-                                    ->where('estado_valida', 'activa')
-                                    ->first();
-                    if (!$receta) {
-                        throw new \Exception("La receta '{$item['receta_folio']}' no es válida o ya fue utilizada.");
+                    
+                    $folio = strtoupper(trim($item['receta_folio']));
+                    
+                    // Si el folio empieza con REC- (nuestro formato interno), lo validamos en DB
+                    if (str_starts_with($folio, 'REC-')) {
+                        if (isset($recetasUsadas[$folio])) {
+                            $recetaId = $recetasUsadas[$folio]->id;
+                        } else {
+                            $receta = Receta::where('folio', $folio)
+                                            ->where('estado_valida', 'activa')
+                                            ->first();
+                            if (!$receta) {
+                                throw new \Exception("La receta interna '{$folio}' no es válida o ya fue utilizada.");
+                            }
+                            $recetaId = $receta->id;
+                            $recetasUsadas[$folio] = $receta;
+                        }
+                    } else {
+                        // Receta externa: la aceptamos sin validación estricta en base de datos.
+                        // Solo se guardará en DetalleVenta.receta_id como null (ya que no tenemos su ID),
+                        // pero para trazabilidad podríamos guardar el folio en un campo nuevo, 
+                        // o dejar receta_id null e indicar que fue receta externa.
+                        // Actualmente DetalleVenta solo tiene receta_id, así que lo dejamos nulo.
+                        $recetaId = null; 
                     }
-                    $recetaId = $receta->id;
-                    $receta->update(['estado_valida' => 'usada']);
                 }
 
                 $precioUnitario = $producto->precio_venta;
@@ -61,6 +79,11 @@ class VentaService
                 ];
             }
 
+            // Marcar recetas como usadas
+            foreach ($recetasUsadas as $receta) {
+                $receta->update(['estado_valida' => 'usada']);
+            }
+
             // Crear la venta
             $venta = Venta::create([
                 'vendedor_id' => Auth::id(),
@@ -69,6 +92,11 @@ class VentaService
                 'total'       => $total,
                 'estado'      => 'completada',
             ]);
+
+            // Asignar venta_id a las recetas
+            foreach ($recetasUsadas as $receta) {
+                $receta->update(['venta_id' => $venta->id]);
+            }
 
             // Procesar cada línea con FEFO
             foreach ($lineas as $linea) {

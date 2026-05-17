@@ -15,12 +15,14 @@
         <a href="{{ route('expedientes.show', $consulta->expediente_id) }}" class="btn btn-outline-secondary d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
             <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Volver a Expediente
         </a>
+        @if(auth()->user()->rol === 'medico')
         <a href="{{ route('consultas.edit', $consulta->id) }}" class="btn btn-outline-primary d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
             <i data-lucide="edit" style="width:16px;height:16px;"></i> Editar
         </a>
-        <a href="#" class="btn btn-accent d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
+        <a href="{{ route('recetas.create', $consulta->id) }}" class="btn btn-accent d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
             <i data-lucide="file-text" style="width:16px;height:16px;"></i> Generar Receta
         </a>
+        @endif
     </div>
 </div>
 
@@ -135,6 +137,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="fw-bold text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.05em;">Notas de Evolución (Privadas)</div>
                     </div>
+                    @if(auth()->user()->rol === 'medico')
                     <form action="{{ route('consultas.update-notas', $consulta->id) }}" method="POST">
                         @csrf
                         @method('PATCH')
@@ -145,6 +148,39 @@
                             </button>
                         </div>
                     </form>
+                    @else
+                        @if($consulta->notas_evolucion)
+                        <div class="p-3 bg-light rounded" style="font-size: 14px; white-space: pre-wrap;">{{ $consulta->notas_evolucion }}</div>
+                        @else
+                        <div class="text-muted" style="font-size: 13px;">No hay notas registradas.</div>
+                        @endif
+                    @endif
+                </div>
+
+                <hr class="my-0 text-muted">
+
+                {{-- Recetas Generadas --}}
+                <div class="mt-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="fw-bold text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.05em;">Recetas Generadas</div>
+                    </div>
+                    @if($consulta->recetas && $consulta->recetas->count() > 0)
+                        <div class="list-group">
+                            @foreach($consulta->recetas as $receta)
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ $receta->folio }}</strong><br>
+                                    <small class="text-muted">{{ $receta->fecha->format('d/m/Y') }}</small>
+                                </div>
+                                <a href="{{ route('recetas.imprimir', $receta->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i data-lucide="printer" style="width:14px;height:14px;"></i> Imprimir
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-muted" style="font-size: 13px;">No se han generado recetas para esta consulta.</div>
+                    @endif
                 </div>
                 
             </div>

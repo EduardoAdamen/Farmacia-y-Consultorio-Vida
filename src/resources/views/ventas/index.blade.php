@@ -201,7 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (itemExistente.cant < prod.stock_total) {
                 itemExistente.cant++;
             } else {
-                alert('Stock máximo alcanzado para este producto.');
+                Swal.fire({
+                    title: 'Stock máximo',
+                    text: 'Se ha alcanzado el límite de stock para este producto.',
+                    icon: 'warning',
+                    confirmButtonColor: '#F59E0B'
+                });
             }
         } else {
             carrito.push({
@@ -311,6 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.receta-input').forEach(el => {
             el.addEventListener('input', (e) => {
                 carrito[e.target.dataset.idx].receta_folio = e.target.value.trim();
+                calcularCambio();
             });
         });
 
@@ -335,7 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const total = parseFloat(totalCobrarEl.dataset.total) || 0;
         const recibido = parseFloat(montoRecibidoEl.value) || 0;
         
-        btnCobrar.disabled = carrito.length === 0 || (total > 0 && recibido < total);
+        const faltanRecetas = carrito.some(i => i.requiere_receta && !i.receta_folio);
+        
+        btnCobrar.disabled = carrito.length === 0 || (total > 0 && recibido < total) || faltanRecetas;
 
         if (recibido >= total && total > 0) {
             cambioCalculadoEl.textContent = '$' + (recibido - total).toFixed(2);
@@ -352,11 +360,24 @@ document.addEventListener('DOMContentLoaded', () => {
     montoRecibidoEl.addEventListener('input', calcularCambio);
     
     btnVaciar.addEventListener('click', () => {
-        if(confirm('¿Seguro que deseas vaciar el carrito?')) {
-            carrito = [];
-            renderCarrito();
-            montoRecibidoEl.value = '';
-        }
+        if(carrito.length === 0) return;
+        
+        Swal.fire({
+            title: '¿Vaciar Carrito?',
+            text: 'Se eliminarán todos los productos actuales.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#F43F5E',
+            cancelButtonColor: '#64748B',
+            confirmButtonText: 'Sí, vaciar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                carrito = [];
+                renderCarrito();
+                montoRecibidoEl.value = '';
+            }
+        });
     });
 
     btnCobrar.addEventListener('click', () => {
@@ -365,7 +386,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Validar recetas
         const faltanRecetas = carrito.some(i => i.requiere_receta && !i.receta_folio);
         if (faltanRecetas) {
-            alert('Debes ingresar el folio de receta para los medicamentos controlados.');
+            Swal.fire({
+                title: 'Faltan recetas',
+                text: 'Debes ingresar el folio de receta para los medicamentos controlados.',
+                icon: 'error',
+                confirmButtonColor: '#F43F5E'
+            });
             return;
         }
 
@@ -391,14 +417,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.success) {
                 window.location.href = res.redirect;
             } else {
-                alert('Error al registrar venta: ' + res.message);
+                Swal.fire({
+                    title: 'Error al registrar',
+                    text: res.message,
+                    icon: 'error',
+                    confirmButtonColor: '#F43F5E'
+                });
                 btnCobrar.disabled = false;
                 btnCobrar.innerHTML = '<i data-lucide="check-circle"></i> REGISTRAR VENTA';
                 lucide.createIcons();
             }
         })
         .catch(err => {
-            alert('Error de conectividad al servidor.');
+            Swal.fire({
+                title: 'Error de conectividad',
+                text: 'Hubo un problema al comunicarse con el servidor.',
+                icon: 'error',
+                confirmButtonColor: '#F43F5E'
+            });
             console.error(err);
             btnCobrar.disabled = false;
             btnCobrar.innerHTML = '<i data-lucide="check-circle"></i> REGISTRAR VENTA';

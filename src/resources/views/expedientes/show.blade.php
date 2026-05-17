@@ -16,13 +16,37 @@
             @endif
         </div>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('expedientes.index') }}" class="btn btn-ghost d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
+            <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Volver
+        </a>
         <a href="{{ route('expedientes.edit', $expediente->id) }}" class="btn btn-outline-secondary d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
             <i data-lucide="edit" style="width:16px;height:16px;"></i> Editar
         </a>
+        
+        @if($expediente->estado === 'activo')
+        <form action="{{ route('expedientes.archivar', $expediente->id) }}" method="POST" class="mb-0" id="formArchivar">
+            @csrf
+            @method('PATCH')
+            <button type="button" class="btn btn-outline-danger d-flex align-items-center gap-2 btn-archivar" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
+                <i data-lucide="archive" style="width:16px;height:16px;"></i> Archivar
+            </button>
+        </form>
+        @else
+        <form action="{{ route('expedientes.desarchivar', $expediente->id) }}" method="POST" class="mb-0" id="formDesarchivar">
+            @csrf
+            @method('PATCH')
+            <button type="button" class="btn btn-outline-success d-flex align-items-center gap-2 btn-desarchivar" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
+                <i data-lucide="archive-restore" style="width:16px;height:16px;"></i> Desarchivar
+            </button>
+        </form>
+        @endif
+        
+        @if(auth()->user()->rol === 'medico')
         <a href="{{ route('consultas.create', ['expediente_id' => $expediente->id]) }}" class="btn btn-accent d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
             <i data-lucide="stethoscope" style="width:16px;height:16px;"></i> Registrar Consulta
         </a>
+        @endif
     </div>
 </div>
 
@@ -112,6 +136,19 @@
                             <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted);">Diagnóstico:</div>
                             <div style="font-size: 14px; font-weight: 500;">{{ $consulta->diagnostico }}</div>
                         </div>
+                        @if($consulta->recetas && $consulta->recetas->count() > 0)
+                        <div class="mt-3">
+                            <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); mb-1">Recetas Emitidas:</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach($consulta->recetas as $receta)
+                                <a href="{{ route('recetas.imprimir', $receta->id) }}" target="_blank" class="badge bg-light text-dark border text-decoration-none p-2 d-flex align-items-center gap-1">
+                                    <i data-lucide="file-text" style="width:14px;height:14px;color:var(--color-accent);"></i>
+                                    {{ $receta->folio }}
+                                </a>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 @empty
                     <div class="text-center p-5 text-muted">
@@ -130,3 +167,49 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnArchivar = document.querySelector('.btn-archivar');
+        if(btnArchivar) {
+            btnArchivar.addEventListener('click', function() {
+                Swal.fire({
+                    title: '¿Archivar Expediente?',
+                    text: 'El expediente dejará de aparecer en la lista principal, pero conservará todo su historial clínico.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F43F5E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, archivar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('formArchivar').submit();
+                    }
+                });
+            });
+        }
+
+        const btnDesarchivar = document.querySelector('.btn-desarchivar');
+        if(btnDesarchivar) {
+            btnDesarchivar.addEventListener('click', function() {
+                Swal.fire({
+                    title: '¿Desarchivar Expediente?',
+                    text: 'El paciente volverá a aparecer como activo en el sistema.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#22C55E',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, restaurar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('formDesarchivar').submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
+@endpush

@@ -99,10 +99,9 @@
                                 </button>
                             </form>
 
-                            <form method="POST" action="{{ route('usuarios.reset-password', $usuario->id) }}"
-                                  onsubmit="return confirm('¿Restablecer la contraseña de {{ $usuario->nombre_completo }}?')">
+                            <form method="POST" action="{{ route('usuarios.reset-password', $usuario->id) }}" class="mb-0 form-reset">
                                 @csrf @method('PATCH')
-                                <button type="submit" class="btn btn-ghost btn-sm d-flex align-items-center gap-1"
+                                <button type="button" class="btn btn-ghost btn-sm d-flex align-items-center gap-1 btn-submit-reset"
                                         style="font-size:12px;border-radius:6px;padding:5px 10px;">
                                     <i data-lucide="key" style="width:14px;height:14px;"></i> Restablecer
                                 </button>
@@ -125,3 +124,29 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-submit-reset').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Restablecer Contraseña?',
+                    text: 'Se generará una nueva contraseña temporal para este usuario.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F59E0B',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, restablecer',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush
