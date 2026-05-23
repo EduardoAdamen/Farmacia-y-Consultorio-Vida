@@ -36,12 +36,12 @@
         @endforeach
     </select>
 
-    {{-- Filtro estado --}}
     <select name="filtro" class="form-select w-auto"
             style="background-color:#fff;border:1px solid var(--color-border);border-radius:10px;font-size:13px;padding:9px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-        <option value="">Todos</option>
+        <option value="">Todos (Activos)</option>
         <option value="critico" {{ request('filtro') == 'critico' ? 'selected' : '' }}>Stock Crítico</option>
         <option value="vencer"  {{ request('filtro') == 'vencer'  ? 'selected' : '' }}>Próximos a Vencer (≤30 días)</option>
+        <option value="inactivos" {{ request('filtro') == 'inactivos' ? 'selected' : '' }}>Inactivos (Dados de Baja)</option>
     </select>
 
     {{-- Botón filtrar --}}
@@ -146,6 +146,14 @@
                                             <i data-lucide="trash-2" style="width:14px;height:14px;color:var(--color-danger);"></i>
                                         </button>
                                     </form>
+                                @else
+                                    <form action="{{ route('productos.activar', $prod->id) }}" method="POST" class="mb-0 form-activate-producto">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center btn-submit-activate" style="width:32px;height:32px;" title="Dar de Alta">
+                                            <i data-lucide="rotate-ccw" style="width:14px;height:14px;color:var(--color-success);"></i>
+                                        </button>
+                                    </form>
                                 @endif
                             @endif
                         </div>
@@ -182,6 +190,26 @@
                     confirmButtonColor: '#F43F5E',
                     cancelButtonColor: '#64748B',
                     confirmButtonText: 'Sí, dar de baja',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll('.btn-submit-activate').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Dar de alta producto?',
+                    text: 'El producto volverá a estar activo y disponible para ventas.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#10B981',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Sí, dar de alta',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {

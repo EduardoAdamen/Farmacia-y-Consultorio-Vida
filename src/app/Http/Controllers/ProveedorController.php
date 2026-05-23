@@ -28,7 +28,7 @@ class ProveedorController extends Controller
     {
         // Valida los datos del formulario antes de guardar
         $request->validate([
-            'nombre_empresa'     => 'required|string|max:150',
+            'nombre_empresa'     => 'required|string|max:150|unique:proveedor,nombre_empresa',
             'nombre_contacto'    => 'required|string|max:150',
             'telefono'           => 'required|string|max:20',
             'rfc'                => 'nullable|string|max:13',
@@ -38,6 +38,7 @@ class ProveedorController extends Controller
         ], [
             // Mensajes de error personalizados para mostrar al usuario en caso de fallo
             'nombre_empresa.required'     => 'El nombre de la empresa es obligatorio.',
+            'nombre_empresa.unique'       => 'Ya existe un proveedor registrado con este nombre de empresa.',
             'nombre_contacto.required'    => 'El nombre del contacto es obligatorio.',
             'telefono.required'           => 'El teléfono es obligatorio.',
             'correo_electronico.email'    => 'El correo electrónico no tiene un formato válido.',
@@ -95,7 +96,7 @@ class ProveedorController extends Controller
 
         // Valida los datos del formulario antes de actualizar
         $request->validate([
-            'nombre_empresa'     => 'required|string|max:150',
+            'nombre_empresa'     => 'required|string|max:150|unique:proveedor,nombre_empresa,' . $id,
             'nombre_contacto'    => 'required|string|max:150',
             'telefono'           => 'required|string|max:20',
             'rfc'                => 'nullable|string|max:13',
@@ -105,6 +106,7 @@ class ProveedorController extends Controller
         ], [
             // Mensajes de error personalizados para mostrar al usuario en caso de fallo
             'nombre_empresa.required'     => 'El nombre de la empresa es obligatorio.',
+            'nombre_empresa.unique'       => 'Ya existe un proveedor registrado con este nombre de empresa.',
             'nombre_contacto.required'    => 'El nombre del contacto es obligatorio.',
             'telefono.required'           => 'El teléfono es obligatorio.',
             'correo_electronico.email'    => 'El correo electrónico no tiene un formato válido.',

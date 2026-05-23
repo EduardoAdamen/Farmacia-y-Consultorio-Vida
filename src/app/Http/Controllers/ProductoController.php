@@ -12,11 +12,15 @@ use Illuminate\Http\Request;
 // Controlador que maneja todas las operaciones relacionadas con los productos del catálogo
 class ProductoController extends Controller
 {
-    // Muestra el listado de productos activos con opciones de búsqueda y filtrado
+    // Muestra el listado de productos activos o inactivos con opciones de búsqueda y filtrado
     public function index(Request $request)
     {
-        // Carga los productos activos junto con su categoría y proveedor para evitar consultas extras
-        $query = Producto::with(['categoria', 'proveedor'])->activos();
+        // Si se solicita el filtro de inactivos, cargamos los inactivos; de lo contrario, solo activos
+        if ($request->filtro === 'inactivos') {
+            $query = Producto::with(['categoria', 'proveedor'])->where('estado', 'inactivo');
+        } else {
+            $query = Producto::with(['categoria', 'proveedor'])->activos();
+        }
 
         // Si el usuario escribió algo en el buscador, filtra por nombre, categoría o proveedor
         if ($request->filled('buscar')) {
@@ -229,6 +233,15 @@ class ProductoController extends Controller
         $producto->update(['estado' => 'inactivo']);
         return redirect()->route('productos.index')
                          ->with('success', "Producto '{$producto->nombre}' dado de baja exitosamente.");
+    }
+
+    // Da de alta un producto marcándolo como activo nuevamente
+    public function activar(int $id)
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->update(['estado' => 'activo']);
+        return redirect()->route('productos.index')
+                         ->with('success', "Producto '{$producto->nombre}' dado de alta exitosamente.");
     }
 
     // Busca productos en tiempo real para autocompletar campos en otros formularios (ventas, recetas, etc.)

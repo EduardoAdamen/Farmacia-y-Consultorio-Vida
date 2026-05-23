@@ -15,20 +15,29 @@
     @endunless
 </div>
 
-<div class="card mb-4" style="border:1px solid var(--color-border);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);background:#fff;overflow:hidden;">
-    <div class="card-header bg-white py-3 px-4 border-bottom">
-        <form action="{{ route('expedientes.index') }}" method="GET" class="d-flex gap-2" style="max-width:400px;">
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0"><i data-lucide="search" style="width:16px;height:16px;color:var(--color-text-muted);"></i></span>
-                <input type="text" name="buscar" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre o teléfono..." value="{{ request('buscar') }}">
-            </div>
-            <button type="submit" class="btn btn-outline-secondary">Buscar</button>
-            @if(request('buscar'))
-                <a href="{{ route('expedientes.index') }}" class="btn btn-outline-danger" title="Limpiar"><i data-lucide="x" style="width:16px;height:16px;"></i></a>
-            @endif
-        </form>
+<form method="GET" action="{{ route('expedientes.index') }}" class="d-flex gap-2 align-items-center flex-wrap mb-4">
+    <div class="d-flex align-items-center gap-2 flex-grow-1"
+         style="background:#fff;border:1px solid var(--color-border);border-radius:10px;padding:9px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);min-width:220px;max-width:400px;">
+        <i data-lucide="search" style="width:16px;height:16px;color:var(--color-text-muted);flex-shrink:0;"></i>
+        <input type="text" name="buscar" placeholder="Buscar por nombre o teléfono..."
+               value="{{ request('buscar') }}"
+               style="border:none;outline:none;font-size:13.5px;width:100%;background:transparent;color:inherit;">
     </div>
 
+    <button type="submit" class="btn btn-accent"
+            style="font-size:13px;border-radius:10px;padding:9px 18px;font-weight:600;">
+        Buscar
+    </button>
+
+    @if(request('buscar'))
+        <a href="{{ route('expedientes.index') }}" class="btn btn-ghost"
+           style="border-radius:10px;padding:9px 14px;font-size:13px;">
+            Limpiar
+        </a>
+    @endif
+</form>
+
+<div class="card mb-4" style="border:1px solid var(--color-border);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);background:#fff;overflow:hidden;">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead style="background:#F8FAFC;border-bottom:1px solid var(--color-border);font-size:12.5px;color:var(--color-text-muted);text-transform:uppercase;">

@@ -79,6 +79,7 @@ Route::middleware(['auth', 'sesion.activa'])->group(function () {
         Route::get('/{id}/editar',      [\App\Http\Controllers\ProductoController::class, 'edit'])->name('edit')->middleware('rol:dueno');
         Route::put('/{id}',             [\App\Http\Controllers\ProductoController::class, 'update'])->name('update')->middleware('rol:dueno');
         Route::delete('/{id}',          [\App\Http\Controllers\ProductoController::class, 'destroy'])->name('destroy')->middleware('rol:dueno');
+        Route::patch('/{id}/activar',   [\App\Http\Controllers\ProductoController::class, 'activar'])->name('activar')->middleware('rol:dueno');
         // Agregar lote a producto
         Route::post('/{id}/lotes',      [\App\Http\Controllers\LoteController::class, 'store'])->name('lotes.store')->middleware('rol:dueno');
     });
