@@ -133,6 +133,7 @@ CREATE TABLE pedido (
     estado          ENUM('pendiente','recibido','pagado','cancelado') NOT NULL DEFAULT 'pendiente', 
     monto_total     DECIMAL(10,2) NULL,
     fecha_pago      DATE         NULL,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_pedido PRIMARY KEY (id),
     CONSTRAINT uq_pedido_folio UNIQUE (folio),
     CONSTRAINT fk_pedido_proveedor

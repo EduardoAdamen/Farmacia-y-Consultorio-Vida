@@ -24,6 +24,7 @@ class Pedido extends Model
     protected $casts = [
         'fecha_estimada' => 'date',    // Se convierte a un objeto de fecha (sin hora)
         'fecha_pago'     => 'date',    // Se convierte a un objeto de fecha (sin hora)
+        'created_at'     => 'datetime',
         'monto_total'    => 'decimal:2', // Se muestra con 2 decimales
     ];
 

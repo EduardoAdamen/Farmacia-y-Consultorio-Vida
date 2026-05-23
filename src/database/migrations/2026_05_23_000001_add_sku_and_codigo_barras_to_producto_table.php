@@ -31,6 +31,8 @@ return new class extends Migration
                 }
             });
 
+        DB::statement('ALTER TABLE producto MODIFY sku VARCHAR(50) NOT NULL');
+
         if (! $this->indexExists('producto', 'uq_producto_sku')) {
             DB::statement('ALTER TABLE producto ADD CONSTRAINT uq_producto_sku UNIQUE (sku)');
         }
