@@ -20,6 +20,8 @@ services:
       context: .
       dockerfile: php/Dockerfile
     container_name: farmacia_php
+    env_file:
+      - ./src/.env
     volumes:
       - ./src:/var/www/html
       - farmacia_vendor:/var/www/html/vendor
