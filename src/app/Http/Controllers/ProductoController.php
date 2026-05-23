@@ -8,6 +8,7 @@ use App\Models\Proveedor;
 use App\Models\Lote;
 use App\Models\KardexProducto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 // Controlador que maneja todas las operaciones relacionadas con los productos del catálogo
 class ProductoController extends Controller
@@ -124,44 +125,48 @@ class ProductoController extends Controller
         ]);
 
         // Crea el producto con stock inicial en cero; el stock real se calculará desde los lotes
-        $producto = Producto::create([
-            'nombre'          => $request->nombre,
-            'sku'             => $request->sku,
-            'codigo_barras'   => $request->codigo_barras,
-            'categoria_id'    => $request->categoria_id,
-            'proveedor_id'    => $request->proveedor_id,
-            'precio_compra'   => $request->precio_compra,
-            'precio_venta'    => $request->precio_venta,
-            'stock_total'     => 0,
-            'stock_minimo'    => $request->stock_minimo,
-            'requiere_receta' => $request->boolean('requiere_receta'),
-            'estado'          => 'activo',
-        ]);
-
-        // Si se proporcionó un lote inicial con cantidad mayor a cero, se registra en el sistema
-        if ($request->filled('numero_lote') && $request->cantidad_inicial > 0) {
-            // Crea el lote con la información proporcionada; si no hay fecha de vencimiento, se asignan 2 años
-            Lote::create([
-                'producto_id'       => $producto->id,
-                'numero_lote'       => $request->numero_lote,
-                'cantidad'          => $request->cantidad_inicial,
-                'fecha_vencimiento' => $request->fecha_vencimiento ?? now()->addYears(2),
-                'fecha_ingreso'     => now(),
+        $producto = DB::transaction(function () use ($request) {
+            $producto = Producto::create([
+                'nombre'          => $request->nombre,
+                'sku'             => $request->sku,
+                'codigo_barras'   => $request->codigo_barras,
+                'categoria_id'    => $request->categoria_id,
+                'proveedor_id'    => $request->proveedor_id,
+                'precio_compra'   => $request->precio_compra,
+                'precio_venta'    => $request->precio_venta,
+                'stock_total'     => 0,
+                'stock_minimo'    => $request->stock_minimo,
+                'requiere_receta' => $request->boolean('requiere_receta'),
+                'estado'          => 'activo',
             ]);
 
-            // Actualiza el stock_total del producto sumando la cantidad del lote recién creado
-            $producto->recalcularStock();
+            // Si se proporcionó un lote inicial con cantidad mayor a cero, se registra en el sistema
+            if ($request->filled('numero_lote') && $request->cantidad_inicial > 0) {
+                // Crea el lote con la información proporcionada; si no hay fecha de vencimiento, se asignan 2 años
+                Lote::create([
+                    'producto_id'       => $producto->id,
+                    'numero_lote'       => $request->numero_lote,
+                    'cantidad'          => $request->cantidad_inicial,
+                    'fecha_vencimiento' => $request->fecha_vencimiento ?? now()->addYears(2),
+                    'fecha_ingreso'     => now(),
+                ]);
 
-            // Registra la entrada en el kardex para dejar trazabilidad del movimiento inicial
-            KardexProducto::create([
-                'producto_id'   => $producto->id,
-                'usuario_id'    => auth()->id(), // Usuario que está realizando el registro
-                'tipo'          => 'entrada',
-                'cantidad'      => $request->cantidad_inicial,
-                'referencia_id' => null, // Sin referencia porque es el ingreso inicial del producto
-                'fecha_hora'    => now(),
-            ]);
-        }
+                // Actualiza el stock_total del producto sumando la cantidad del lote recién creado
+                $producto->recalcularStock();
+
+                // Registra la entrada en el kardex para dejar trazabilidad del movimiento inicial
+                KardexProducto::create([
+                    'producto_id'   => $producto->id,
+                    'usuario_id'    => auth()->id(), // Usuario que está realizando el registro
+                    'tipo'          => 'entrada',
+                    'cantidad'      => $request->cantidad_inicial,
+                    'referencia_id' => null, // Sin referencia porque es el ingreso inicial del producto
+                    'fecha_hora'    => now(),
+                ]);
+            }
+
+            return $producto;
+        });
 
         // Redirige al listado de productos mostrando un mensaje de éxito
         return redirect()->route('productos.index')

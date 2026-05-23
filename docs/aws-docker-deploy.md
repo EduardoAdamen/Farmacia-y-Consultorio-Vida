@@ -162,6 +162,7 @@ Actualizar despues de hacer `git pull`:
 ```bash
 git pull
 docker compose --env-file .env.aws -f docker-compose.prod.yml up -d --build
+docker compose --env-file .env.aws -f docker-compose.prod.yml exec php php artisan migrate --force
 ```
 
 Entrar a Artisan:
