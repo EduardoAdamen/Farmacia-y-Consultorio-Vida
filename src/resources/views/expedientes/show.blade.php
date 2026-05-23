@@ -20,6 +20,7 @@
         <a href="{{ route('expedientes.index') }}" class="btn btn-ghost d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
             <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Volver
         </a>
+        @unless(auth()->user()->rol === 'dueno')
         <a href="{{ route('expedientes.edit', $expediente->id) }}" class="btn btn-outline-secondary d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
             <i data-lucide="edit" style="width:16px;height:16px;"></i> Editar
         </a>
@@ -41,6 +42,7 @@
             </button>
         </form>
         @endif
+        @endunless
         
         @if(auth()->user()->rol === 'medico')
         <a href="{{ route('consultas.create', ['expediente_id' => $expediente->id]) }}" class="btn btn-accent d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
@@ -154,7 +156,9 @@
                     <div class="text-center p-5 text-muted">
                         <i data-lucide="inbox" style="width:48px;height:48px;margin-bottom:16px;color:#CBD5E1;"></i>
                         <p>Este paciente no tiene consultas registradas.</p>
+                        @if(auth()->user()->rol === 'medico')
                         <a href="{{ route('consultas.create', ['expediente_id' => $expediente->id]) }}" class="btn btn-outline-primary mt-2">Registrar su primera consulta</a>
+                        @endif
                     </div>
                 @endforelse
             </div>

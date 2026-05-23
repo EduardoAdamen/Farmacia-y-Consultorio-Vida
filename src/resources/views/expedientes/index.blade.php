@@ -8,9 +8,11 @@
         <h5 class="mb-0" style="font-family:'Outfit',sans-serif;font-weight:700;">Gestión de Expedientes</h5>
         <p style="font-size:13px;color:var(--color-text-muted);margin:0;">Administre los expedientes clínicos de los pacientes.</p>
     </div>
+    @unless(auth()->user()->rol === 'dueno')
     <a href="{{ route('expedientes.create') }}" class="btn btn-accent d-flex align-items-center gap-2" style="font-size:13px;font-weight:600;border-radius:8px;padding:9px 16px;">
         <i data-lucide="plus" style="width:16px;height:16px;"></i> Nuevo Expediente
     </a>
+    @endunless
 </div>
 
 <div class="card mb-4" style="border:1px solid var(--color-border);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);background:#fff;overflow:hidden;">
@@ -76,6 +78,7 @@
                             <a href="{{ route('expedientes.show', $exp->id) }}" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center" style="width:32px;height:32px;" title="Ver Detalle">
                                 <i data-lucide="eye" style="width:16px;height:16px;"></i>
                             </a>
+                            @unless(auth()->user()->rol === 'dueno')
                             <a href="{{ route('expedientes.edit', $exp->id) }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width:32px;height:32px;" title="Editar">
                                 <i data-lucide="edit" style="width:16px;height:16px;"></i>
                             </a>
@@ -88,6 +91,7 @@
                                 </button>
                             </form>
                             @endif
+                            @endunless
                         </div>
                     </td>
                 </tr>

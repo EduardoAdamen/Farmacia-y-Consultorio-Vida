@@ -30,14 +30,18 @@ class ExpedienteController extends Controller
     }
 
     // Muestra el formulario para registrar un nuevo expediente clínico
+    // Restringido: solo el médico puede crear expedientes; el dueño solo visualiza.
     public function create()
     {
+        if (auth()->user()->rol === 'dueno') abort(403);
         return view('expedientes.create');
     }
 
     // Guarda un nuevo expediente clínico en la base de datos
+    // Restringido: solo el médico puede crear expedientes.
     public function store(Request $request)
     {
+        if (auth()->user()->rol === 'dueno') abort(403);
         // Valida los datos personales y médicos del paciente antes de guardar
         $request->validate([
             'nombre_completo'         => 'required|string|max:150',
@@ -86,15 +90,19 @@ class ExpedienteController extends Controller
     }
 
     // Muestra el formulario para editar los datos de un expediente existente
+    // Restringido: solo el médico puede editar expedientes.
     public function edit($id)
     {
+        if (auth()->user()->rol === 'dueno') abort(403);
         $expediente = ExpedienteClinico::findOrFail($id);
         return view('expedientes.edit', compact('expediente'));
     }
 
     // Guarda los cambios realizados al expediente clínico de un paciente
+    // Restringido: solo el médico puede actualizar expedientes.
     public function update(Request $request, $id)
     {
+        if (auth()->user()->rol === 'dueno') abort(403);
         $expediente = ExpedienteClinico::findOrFail($id);
 
         // Valida los datos antes de actualizar; las reglas son las mismas que al crear
@@ -120,8 +128,10 @@ class ExpedienteController extends Controller
 
     // Archiva un expediente clínico cuando el paciente ya no es atendido activamente
     // A diferencia de eliminar, archivar conserva todo el historial médico del paciente
+    // Restringido: solo el médico puede archivar expedientes.
     public function archivar($id)
     {
+        if (auth()->user()->rol === 'dueno') abort(403);
         $expediente = ExpedienteClinico::findOrFail($id);
         // Cambia el estado a archivado en lugar de eliminar para preservar el historial clínico
         $expediente->update(['estado' => 'archivado']);
@@ -130,8 +140,10 @@ class ExpedienteController extends Controller
     }
 
     // Desarchiva un expediente clínico devolviéndolo a estado activo
+    // Restringido: solo el médico puede desarchivar expedientes.
     public function desarchivar($id)
     {
+        if (auth()->user()->rol === 'dueno') abort(403);
         $expediente = ExpedienteClinico::findOrFail($id);
         $expediente->update(['estado' => 'activo']);
 

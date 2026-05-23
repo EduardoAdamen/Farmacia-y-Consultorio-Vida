@@ -56,20 +56,49 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-12">
                     <label class="form-label fw-bold">Paciente</label>
-                    <div class="text-muted" style="font-size: 12px; margin-bottom: 8px;">Seleccione un expediente existente o ingrese un nombre temporal si es paciente de primera vez sin expediente.</div>
-                    
-                    <div class="row g-2">
-                        <div class="col-md-6 position-relative">
-                            <input type="text" class="form-control" id="buscar_expediente" placeholder="Buscar expediente (ID o nombre)..." autocomplete="off">
-                            <input type="hidden" name="expediente_id" id="expediente_id" value="{{ old('expediente_id') }}">
-                            <div id="resultado_expediente" class="mt-2 text-success fw-bold" style="font-size: 13px;"></div>
-                            
-                            {{-- Contenedor de resultados flotante --}}
-                            <div id="dropdown_resultados" class="list-group position-absolute w-100 d-none shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; margin-top: 2px;">
+                    <div class="text-muted" style="font-size: 12px; margin-bottom: 8px;">
+                        Busque el expediente escribiendo el nombre o ID del paciente. Si es primera vez, use el campo de nombre temporal.
+                    </div>
+
+                    {{-- Tarjeta del expediente seleccionado --}}
+                    <div id="expediente_seleccionado" class="d-none mb-3 p-3 rounded-3 d-flex justify-content-between align-items-center"
+                         style="background:#f0fdf4;border:1px solid #86efac;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:40px;height:40px;border-radius:10px;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i data-lucide="user-check" style="width:20px;height:20px;color:#fff;"></i>
+                            </div>
+                            <div>
+                                <div id="exp_nombre" class="fw-bold" style="font-size:15px;color:#15803d;"></div>
+                                <div id="exp_detalle" class="text-muted" style="font-size:12px;"></div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <input type="text" name="nombre_temporal" id="nombre_temporal" class="form-control @error('nombre_temporal') is-invalid @enderror" value="{{ old('nombre_temporal') }}" placeholder="Nombre temporal (si no hay expediente)">
+                        <button type="button" id="btn_limpiar_exp" class="btn btn-sm btn-outline-danger" title="Quitar expediente">
+                            <i data-lucide="x" style="width:14px;height:14px;"></i> Quitar
+                        </button>
+                    </div>
+
+                    <div id="fila_busqueda">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="input-group position-relative">
+                                    <span class="input-group-text bg-white" id="icono_buscar" style="border-right:none;">
+                                        <i data-lucide="search" style="width:15px;height:15px;color:var(--color-text-muted);"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0 ps-0" id="buscar_expediente"
+                                           placeholder="Clic para buscar por nombre o ID..." autocomplete="off">
+                                    <input type="hidden" name="expediente_id" id="expediente_id" value="{{ old('expediente_id') }}">
+                                    <div id="dropdown_resultados" class="list-group position-absolute shadow-sm d-none"
+                                         style="z-index:1050;max-height:260px;overflow-y:auto;top:100%;left:0;right:0;margin-top:2px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="nombre_temporal" id="nombre_temporal"
+                                       class="form-control @error('nombre_temporal') is-invalid @enderror"
+                                       value="{{ old('nombre_temporal') }}"
+                                       placeholder="O escriba nombre si no tiene expediente">
+                                <div class="form-text">Solo si no existe expediente registrado.</div>
+                            </div>
                         </div>
                     </div>
                     @error('paciente') <div class="text-danger mt-1" style="font-size: 13px;">{{ $message }}</div> @enderror
@@ -152,56 +181,102 @@
             }
         });
 
-        // Búsqueda AJAX de expedientes
-        const inputBuscar = document.getElementById('buscar_expediente');
-        const inputId = document.getElementById('expediente_id');
-        const resExpediente = document.getElementById('resultado_expediente');
+        // ── Búsqueda de expedientes ───────────────────────────────────────
+        const inputBuscar      = document.getElementById('buscar_expediente');
+        const inputId          = document.getElementById('expediente_id');
         const dropdownResultados = document.getElementById('dropdown_resultados');
+        const cardSeleccionado = document.getElementById('expediente_seleccionado');
+        const expNombre        = document.getElementById('exp_nombre');
+        const expDetalle       = document.getElementById('exp_detalle');
+        const filaBusqueda     = document.getElementById('fila_busqueda');
+        const btnLimpiar       = document.getElementById('btn_limpiar_exp');
+        const iconoBuscar      = document.getElementById('icono_buscar');
+        const BUSCAR_EXP_URL   = '{{ route("expedientes.buscar-ajax") }}';
         let debounceTimerExp;
-        
+
+        function buscarExpedientes(query) {
+            iconoBuscar.innerHTML = '<span class="spinner-border spinner-border-sm text-muted"></span>';
+            dropdownResultados.innerHTML = '';
+            dropdownResultados.classList.remove('d-none');
+
+            fetch(`${BUSCAR_EXP_URL}?q=${encodeURIComponent(query)}`)
+                .then(r => r.json())
+                .then(data => {
+                    iconoBuscar.innerHTML = '<i data-lucide="search" style="width:15px;height:15px;color:var(--color-text-muted);"></i>';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    dropdownResultados.innerHTML = '';
+
+                    if (data.length === 0) {
+                        dropdownResultados.innerHTML = `<div class="list-group-item text-muted py-3 text-center" style="font-size:13px;">
+                            <i>No se encontraron expedientes.</i><br><small>Puede usar el nombre temporal.</small>
+                        </div>`;
+                        return;
+                    }
+
+                    const header = document.createElement('div');
+                    header.className = 'list-group-item bg-light py-1';
+                    header.style.cssText = 'font-size:10px;font-weight:700;text-transform:uppercase;color:var(--color-text-muted);letter-spacing:.05em;';
+                    header.textContent = `${data.length} expediente(s) encontrado(s)`;
+                    dropdownResultados.appendChild(header);
+
+                    data.forEach(exp => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'list-group-item list-group-item-action p-3 text-start';
+                        btn.innerHTML = `
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:36px;height:36px;border-radius:8px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i data-lucide="user" style="width:18px;height:18px;color:#0ea5e9;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="font-size:14px;">${exp.nombre_completo}</div>
+                                    <div class="text-muted" style="font-size:11px;">ID: ${String(exp.id).padStart(5,'0')}${exp.telefono ? ' · ' + exp.telefono : ''}</div>
+                                </div>
+                            </div>`;
+                        btn.addEventListener('click', () => seleccionarExpediente(exp));
+                        dropdownResultados.appendChild(btn);
+                    });
+
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                })
+                .catch(() => {
+                    iconoBuscar.innerHTML = '<i data-lucide="search" style="width:15px;height:15px;"></i>';
+                    dropdownResultados.innerHTML = `<div class="list-group-item text-danger" style="font-size:13px;">Error al buscar expedientes.</div>`;
+                });
+        }
+
+        function seleccionarExpediente(exp) {
+            inputId.value = exp.id;
+            expNombre.textContent = exp.nombre_completo;
+            expDetalle.textContent = `ID: ${String(exp.id).padStart(5,'0')}${exp.telefono ? ' · Tel: ' + exp.telefono : ''}`;
+            cardSeleccionado.classList.remove('d-none');
+            filaBusqueda.classList.add('d-none');
+            dropdownResultados.classList.add('d-none');
+            document.getElementById('nombre_temporal').value = '';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function limpiarSeleccion() {
+            inputId.value = '';
+            inputBuscar.value = '';
+            cardSeleccionado.classList.add('d-none');
+            filaBusqueda.classList.remove('d-none');
+            dropdownResultados.classList.add('d-none');
+            setTimeout(() => inputBuscar.focus(), 50);
+        }
+
+        // Cargar catálogo al hacer focus
+        inputBuscar.addEventListener('focus', () => buscarExpedientes(inputBuscar.value.trim()));
+
+        // Filtrar mientras escribe
         inputBuscar.addEventListener('input', function() {
             clearTimeout(debounceTimerExp);
-            const query = this.value.trim();
-            
-            if (query.length < 2) {
-                dropdownResultados.classList.add('d-none');
-                dropdownResultados.innerHTML = '';
-                inputId.value = '';
-                resExpediente.textContent = '';
-                return;
-            }
-
-            debounceTimerExp = setTimeout(() => {
-                fetch(`{{ route('expedientes.buscar-ajax') }}?q=${encodeURIComponent(query)}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        dropdownResultados.innerHTML = '';
-                        if (data.length === 0) {
-                            dropdownResultados.innerHTML = '<div class="list-group-item text-muted" style="font-size:13px;">No se encontraron expedientes.</div>';
-                        } else {
-                            data.forEach(exp => {
-                                const btn = document.createElement('button');
-                                btn.type = 'button';
-                                btn.className = 'list-group-item list-group-item-action p-2 text-start';
-                                btn.innerHTML = `
-                                    <div class="fw-bold" style="font-size:14px; color:var(--color-primary);">${exp.nombre_completo}</div>
-                                    <div class="text-muted" style="font-size:12px;">ID: ${exp.id.toString().padStart(5, '0')} | Tel: ${exp.telefono || 'N/E'}</div>
-                                `;
-                                btn.addEventListener('click', () => {
-                                    inputId.value = exp.id;
-                                    inputBuscar.value = exp.nombre_completo;
-                                    resExpediente.textContent = `Expediente seleccionado: ${exp.nombre_completo} (ID: ${exp.id.toString().padStart(5, '0')})`;
-                                    dropdownResultados.classList.add('d-none');
-                                });
-                                dropdownResultados.appendChild(btn);
-                            });
-                        }
-                        dropdownResultados.classList.remove('d-none');
-                    });
-            }, 300);
+            debounceTimerExp = setTimeout(() => buscarExpedientes(this.value.trim()), 300);
         });
 
-        // Ocultar dropdown al hacer click fuera
+        btnLimpiar.addEventListener('click', limpiarSeleccion);
+
+        // Cerrar dropdown al hacer click fuera
         document.addEventListener('click', (e) => {
             if (!inputBuscar.contains(e.target) && !dropdownResultados.contains(e.target)) {
                 dropdownResultados.classList.add('d-none');

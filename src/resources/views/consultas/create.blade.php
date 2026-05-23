@@ -128,7 +128,7 @@
                     {{-- Motivo y Síntomas --}}
                     <div>
                         <label class="form-label fw-bold">Motivo de la Consulta <span class="text-danger">*</span></label>
-                        <textarea name="motivo" class="form-control @error('motivo') is-invalid @enderror" rows="2" required placeholder="Motivo principal por el que acude el paciente...">{{ old('motivo', $cita->motivo ?? '') }}</textarea>
+                        <textarea name="motivo" class="form-control @error('motivo') is-invalid @enderror" rows="2" required placeholder="Motivo principal por el que acude el paciente...">{{ old('motivo', $cita?->motivo ?? '') }}</textarea>
                         @error('motivo') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
@@ -165,7 +165,7 @@
                     @if($expediente)
                         <a href="{{ route('expedientes.show', $expediente->id) }}" class="btn btn-outline-secondary">Cancelar</a>
                     @else
-                        <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        <a href="{{ route('panel-inicio') }}" class="btn btn-outline-secondary">Cancelar</a>
                     @endif
                     
                     <button type="submit" class="btn btn-accent d-flex align-items-center gap-2">

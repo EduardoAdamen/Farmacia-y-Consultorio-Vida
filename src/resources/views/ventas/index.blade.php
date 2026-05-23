@@ -6,6 +6,32 @@
     .pos-col { height: calc(100vh - 140px); overflow-y: auto; }
     .search-result-item:hover { background-color: var(--color-secondary); cursor: pointer; }
     .receta-input { font-family: 'DM Mono', monospace; font-size: 13px; }
+    .list-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+    }
+    .btn-clear-search {
+        background: none;
+        border: none;
+        padding: 0 6px;
+        color: var(--color-text-muted);
+        line-height: 1;
+        display: none;
+    }
+    .btn-clear-search:hover { color: var(--color-danger, #F43F5E); }
+    .search-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        gap: .5rem;
+        color: var(--color-text-muted);
+        font-size: 13px;
+    }
 </style>
 @endpush
 
@@ -24,16 +50,23 @@
         </a>
         <div class="card h-100">
             <div class="card-header p-3">
-                <div class="position-relative">
+                <div class="position-relative mb-2">
                     <i data-lucide="search" class="position-absolute" style="left:12px; top:10px; color:var(--color-text-muted); width:18px; height:18px;"></i>
-                    <input type="text" id="searchInput" class="form-control ps-5" placeholder="Buscar por nombre o categoría..." autocomplete="off" autofocus>
+                    <input type="text" id="searchInput" class="form-control ps-5 pe-5" placeholder="Buscar por nombre o categoría..." autocomplete="off" autofocus>
+                    <button class="btn-clear-search position-absolute" id="btnClearSearch" style="right:10px; top:8px;" title="Limpiar búsqueda">
+                        <i data-lucide="x" style="width:16px;height:16px;"></i>
+                    </button>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="list-label" id="searchLabel">Catálogo de productos</span>
+                    <span class="list-label" id="searchCount" style="font-weight:400;"></span>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div id="searchResults" class="list-group list-group-flush rounded-0">
-                    <div class="p-4 text-center text-muted" id="searchEmptyState">
-                        <i data-lucide="package-search" style="width:40px;height:40px;opacity:0.5;" class="mb-2"></i>
-                        <div>Busca un producto para empezar</div>
+                    <div class="search-loading" id="searchLoading">
+                        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                        <span>Cargando productos...</span>
                     </div>
                 </div>
             </div>
@@ -147,50 +180,109 @@ document.addEventListener('DOMContentLoaded', () => {
     const recetaSection = document.getElementById('recetaSection');
     const recetaInputsCont = document.getElementById('recetaInputsContainer');
 
-    // Búsqueda AJAX
-    searchInput.addEventListener('input', (e) => {
-        clearTimeout(debounceTimer);
-        const query = e.target.value.trim();
-        
-        if (query.length < 2) {
-            searchResults.innerHTML = '<div class="p-4 text-center text-muted"><i data-lucide="package-search" style="width:40px;height:40px;opacity:0.5;" class="mb-2"></i><div>Busca un producto para empezar</div></div>';
+    // ── Helpers de renderizado de resultados ─────────────────
+    const searchLabel = document.getElementById('searchLabel');
+    const searchCount = document.getElementById('searchCount');
+    const btnClear    = document.getElementById('btnClearSearch');
+
+    function renderSearchResults(data, query) {
+        searchResults.innerHTML = '';
+
+        if (data.length === 0) {
+            const msg = query
+                ? `No se encontraron productos para "${query}".`
+                : 'No hay productos activos registrados.';
+            searchResults.innerHTML = `<div class="p-4 text-center text-muted"><i data-lucide="package-search" style="width:36px;height:36px;opacity:0.4;" class="mb-2"></i><div style="font-size:13px">${msg}</div></div>`;
             lucide.createIcons();
             return;
         }
 
-        debounceTimer = setTimeout(() => {
-            fetch(`/productos/buscar?q=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    searchResults.innerHTML = '';
-                    if (data.length === 0) {
-                        searchResults.innerHTML = '<div class="p-4 text-center text-muted">No se encontraron productos en stock.</div>';
-                        return;
-                    }
-                    
-                    data.forEach(prod => {
-                        const tpl = tplSearchResult.content.cloneNode(true);
-                        tpl.querySelector('.product-name').textContent = prod.nombre;
-                        tpl.querySelector('.product-category').textContent = prod.categoria?.nombre || '';
-                        
-                        const stockBadge = tpl.querySelector('.product-stock');
-                        stockBadge.textContent = 'Stock: ' + prod.stock_total;
-                        stockBadge.className = 'badge ' + (prod.stock_total > 5 ? 'bg-success' : 'bg-danger');
-                        
-                        tpl.querySelector('.product-price').textContent = parseFloat(prod.precio_venta).toFixed(2);
-                        
-                        if (prod.requiere_receta) {
-                            tpl.querySelector('.product-receta').classList.remove('d-none');
-                        }
-                        
-                        const btnAdd = tpl.querySelector('.btn-add-cart');
-                        btnAdd.addEventListener('click', () => agregarAlCarrito(prod));
-                        
-                        searchResults.appendChild(tpl);
-                    });
-                    lucide.createIcons();
-                });
-        }, 300);
+        // Cabecera contextual
+        if (query) {
+            searchLabel.textContent = `Resultados para "${query}"`;
+            btnClear.style.display = 'inline-block';
+        } else {
+            searchLabel.textContent = 'Catálogo de productos';
+            btnClear.style.display = 'none';
+        }
+        searchCount.textContent = `${data.length} producto${data.length !== 1 ? 's' : ''}`;
+
+        data.forEach(prod => {
+            const tpl = tplSearchResult.content.cloneNode(true);
+            tpl.querySelector('.product-name').textContent = prod.nombre;
+            tpl.querySelector('.product-category').textContent = prod.categoria?.nombre || '';
+
+            // Badge con 3 estados visuales según nivel de stock
+            const stockBadge = tpl.querySelector('.product-stock');
+            if (prod.stock_total === 0) {
+                stockBadge.textContent = 'Sin Stock';
+                stockBadge.className = 'badge bg-secondary';
+            } else if (prod.stock_total <= 5) {
+                stockBadge.textContent = 'Stock: ' + prod.stock_total;
+                stockBadge.className = 'badge bg-warning text-dark';
+            } else {
+                stockBadge.textContent = 'Stock: ' + prod.stock_total;
+                stockBadge.className = 'badge bg-success';
+            }
+
+            tpl.querySelector('.product-price').textContent = parseFloat(prod.precio_venta).toFixed(2);
+
+            if (prod.requiere_receta) {
+                tpl.querySelector('.product-receta').classList.remove('d-none');
+            }
+
+            // Deshabilitar botón si no hay stock disponible
+            const btnAdd = tpl.querySelector('.btn-add-cart');
+            if (prod.stock_total === 0) {
+                btnAdd.disabled = true;
+                btnAdd.textContent = 'Sin Stock';
+                btnAdd.classList.remove('btn-outline-primary');
+                btnAdd.classList.add('btn-outline-secondary');
+            } else {
+                btnAdd.addEventListener('click', () => agregarAlCarrito(prod));
+            }
+
+            searchResults.appendChild(tpl);
+        });
+        lucide.createIcons();
+    }
+
+    function fetchProductos(query) {
+        const url = query
+            ? `/productos/buscar?q=${encodeURIComponent(query)}`
+            : '/productos/buscar';
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => renderSearchResults(data, query))
+            .catch(() => {
+                searchResults.innerHTML = '<div class="p-3 text-center text-danger" style="font-size:13px">Error al cargar productos.</div>';
+            });
+    }
+
+    // Carga inicial del catálogo al abrir el POS
+    fetchProductos('');
+
+    // Búsqueda AJAX con debounce
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+
+        // Mostrar/ocultar botón de limpiar
+        btnClear.style.display = query ? 'inline-block' : 'none';
+
+        // Para query muy corto (1 char) esperar sin mostrar estado vacío
+        if (query.length === 1) return;
+
+        debounceTimer = setTimeout(() => fetchProductos(query), 300);
+    });
+
+    // Limpiar búsqueda → volver al catálogo completo
+    btnClear.addEventListener('click', () => {
+        searchInput.value = '';
+        btnClear.style.display = 'none';
+        searchInput.focus();
+        fetchProductos('');
     });
 
     // Agregar al carrito
@@ -219,7 +311,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         renderCarrito();
         searchInput.value = '';
-        searchInput.dispatchEvent(new Event('input')); // Limpiar resultados
+        btnClear.style.display = 'none';
+        fetchProductos('');  // Restablecer catálogo al instante tras añadir
         searchInput.focus();
     }
 

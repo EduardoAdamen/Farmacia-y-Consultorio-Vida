@@ -232,21 +232,29 @@ class ProductoController extends Controller
     }
 
     // Busca productos en tiempo real para autocompletar campos en otros formularios (ventas, recetas, etc.)
+    // Se incluyen productos con stock 0 para que el vendedor los vea; la venta se bloquea en VentaService.
+    // Con término vacío devuelve el catálogo completo para la lista rápida inicial del POS.
     public function buscarAjax(Request $request)
     {
         $termino = $request->get('q', '');
-        // Solo devuelve productos activos con stock disponible que coincidan con el término buscado
-        $productos = Producto::activos()
-                             ->where(function ($q) use ($termino) {
-                                 $q->where('nombre', 'like', "%{$termino}%")
-                                   ->orWhereHas('categoria', fn($c) =>
-                                       $c->where('nombre', 'like', "%{$termino}%")
-                                   );
-                             })
-                             ->where('stock_total', '>', 0)
-                             ->with('categoria')
-                             ->limit(10) // Limita a 10 resultados para que la respuesta sea rápida
-                             ->get(['id','nombre','precio_venta','stock_total','requiere_receta','categoria_id']);
+        $query   = Producto::activos()->with('categoria');
+
+        if ($termino !== '') {
+            // Con término: filtra por nombre o categoría
+            $query->where(function ($q) use ($termino) {
+                $q->where('nombre', 'like', "%{$termino}%")
+                  ->orWhereHas('categoria', fn($c) =>
+                      $c->where('nombre', 'like', "%{$termino}%")
+                  );
+            });
+        }
+
+        // Con stock primero, luego sin stock; dentro de cada grupo, orden alfabético
+        $productos = $query
+            ->orderByRaw('stock_total > 0 DESC') // productos con stock al inicio
+            ->orderBy('nombre')
+            ->limit($termino !== '' ? 10 : 20)   // más resultados en la lista inicial
+            ->get(['id','nombre','precio_venta','stock_total','requiere_receta','categoria_id']);
 
         // Devuelve los resultados en formato JSON para ser consumidos por el componente de búsqueda
         return response()->json($productos);
