@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+!.env.aws.example
+
+mysql/data
+docker/mysql
+
+*.log
+*.pid
+*.sock
+.DS_Store
+Thumbs.db
