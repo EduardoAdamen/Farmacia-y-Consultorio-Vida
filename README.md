@@ -234,7 +234,7 @@ El sistema requiere la definición de variables de entorno para configurar adecu
 
 | Variable | Tipo | Valor por Defecto | Descripción |
 | :--- | :--- | :--- | :--- |
-| `APP_NAME` | Texto | `"Farmacia Vida"` | Nombre de la aplicación que se muestra en los títulos y correos. |
+| `APP_NAME` | Texto | `"Farmacia y Consultorio Vida"` | Nombre de la aplicación que se muestra en los títulos y correos. |
 | `APP_ENV` | Texto | `local` / `production` | Define el comportamiento del entorno (errores detallados o silencioso). |
 | `APP_KEY` | String | `base64:...` | Clave criptográfica para encriptar sesiones y datos (generada con `key:generate`). |
 | `APP_DEBUG` | Booleano| `true` (dev) / `false` (prod)| Habilita o deshabilita la pantalla de depuración detallada. |

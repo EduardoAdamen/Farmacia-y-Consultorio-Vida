@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "═══════════════════════════════════════════════════"
-echo "  Farmacia Vida — Configuración Inicial"
+echo "  Farmacia y Consultorio Vida — Configuración Inicial"
 echo "═══════════════════════════════════════════════════"
 echo ""
 

@@ -72,7 +72,7 @@
     <div class="login-icon">
         <i data-lucide="cross" style="width:28px;height:28px;"></i>
     </div>
-    <div class="login-title">Farmacia Vida</div>
+    <div class="login-title">Farmacia y Consultorio Vida</div>
    
 
     @if(session('success'))

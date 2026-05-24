@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Panel') — Farmacia Vida</title>
+    <title>@yield('title', 'Panel') — Farmacia y Consultorio Vida</title>
 
     <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -318,7 +318,7 @@
         <div class="brand-icon">
             <i data-lucide="cross" style="width:18px;height:18px;color:#fff;"></i>
         </div>
-        <span class="brand-name">Farmacia Vida</span>
+        <span class="brand-name">Farmacia y Consultorio Vida</span>
     </div>
 
     <div class="mt-1 pb-4 flex-grow-1">

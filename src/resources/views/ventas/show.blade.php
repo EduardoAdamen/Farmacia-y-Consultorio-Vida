@@ -51,7 +51,7 @@
             <div class="mb-2">
                 <i data-lucide="cross" style="color:var(--color-accent);width:32px;height:32px;"></i>
             </div>
-            <h3 class="fw-bold m-0" style="color:var(--color-primary);">FARMACIA VIDA</h3>
+            <h3 class="fw-bold m-0" style="color:var(--color-primary);">FARMACIA Y CONSULTORIO VIDA</h3>
             <div class="text-muted" style="font-size:12px;">Comprobante de Venta</div>
         </div>
 
