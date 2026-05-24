@@ -481,7 +481,7 @@ El núcleo operativo del sistema está completado al 100%. Se proponen las sigui
 
 ## 📄 Licencia
 
-Este proyecto está bajo la licencia **MIT**. Puedes consultar el archivo para más detalles.
+Este proyecto está bajo la licencia [MIT](https://opensource.org/license/mit). Puedes consultar el enlace o el archivo para más detalles.
 
 ---
 
