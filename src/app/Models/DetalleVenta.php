@@ -22,7 +22,7 @@ class DetalleVenta extends Model
         'descuento_manual',   
     ];
 
-  
+    // Define el tipo de dato esperado para ciertos campos al leerlos desde la base de datos
     protected $casts = [
         'precio_unitario'  => 'decimal:2', 
         'descuento_manual' => 'decimal:2', 
