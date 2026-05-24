@@ -41,6 +41,7 @@ Route::middleware(['auth', 'sesion.activa'])->group(function () {
         Route::get('/{id}/editar',   [\App\Http\Controllers\ProveedorController::class, 'edit'])->name('edit');
         Route::put('/{id}',          [\App\Http\Controllers\ProveedorController::class, 'update'])->name('update');
         Route::delete('/{id}',       [\App\Http\Controllers\ProveedorController::class, 'destroy'])->name('destroy');
+        Route::patch('/{id}/activar',[\App\Http\Controllers\ProveedorController::class, 'activar'])->name('activar');
     });
 
     // Pedidos

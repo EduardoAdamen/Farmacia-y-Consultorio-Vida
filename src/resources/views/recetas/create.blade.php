@@ -15,7 +15,7 @@
             <p><strong>Diagnóstico:</strong> {{ $consulta->diagnostico }}</p>
         </div>
 
-        <form action="{{ route('recetas.store', $consulta->id) }}" method="POST" id="recetaForm">
+        <form action="{{ route('recetas.store', $consulta->id) }}" method="POST" id="recetaForm" novalidate>
             @csrf
             
             <h5 class="text-accent mb-3">Medicamentos</h5>
@@ -227,6 +227,52 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.toggle('text-danger', botones.length > 1);
         });
     }
+
+    // Validar manualmente (novalidate en el form deshabilita la validación nativa del navegador)
+    const form = document.getElementById('recetaForm');
+    form.addEventListener('submit', function(e) {
+        const rows = lista.querySelectorAll('tr');
+        let count = 0;
+        let camposVacios = false;
+
+        rows.forEach(row => {
+            const medName = row.querySelector('.input-medicamento').value.trim();
+            if (medName) {
+                count++;
+                // Verificar campos obligatorios de la fila (dosis, frecuencia, duración)
+                const dosis     = row.querySelector('input[name*="[dosis]"]').value.trim();
+                const frecuencia= row.querySelector('input[name*="[frecuencia]"]').value.trim();
+                const duracion  = row.querySelector('input[name*="[duracion]"]').value.trim();
+                if (!dosis || !frecuencia || !duracion) {
+                    camposVacios = true;
+                }
+            }
+        });
+
+        if (count === 0) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Atención',
+                text: 'Debe ingresar al menos un medicamento para generar la receta.',
+                icon: 'warning',
+                confirmButtonColor: '#0D9488',
+                confirmButtonText: 'Aceptar'
+            });
+            return false;
+        }
+
+        if (camposVacios) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Atención',
+                text: 'Complete los campos de Dosis, Frecuencia y Duración en todos los medicamentos.',
+                icon: 'warning',
+                confirmButtonColor: '#0D9488',
+                confirmButtonText: 'Aceptar'
+            });
+            return false;
+        }
+    });
 });
 </script>
 @endsection

@@ -2,19 +2,18 @@
 @section('title', 'Editar Proveedor')
 
 @section('content')
-<div class="mb-4 mt-2">
-    <h5 class="mb-0 fw-bold" style="font-family: 'Outfit', sans-serif;">Editar Proveedor</h5>
-</div>
+<div class="mx-auto" style="max-width: 800px;">
+    <div class="mb-4 mt-2">
+        <a href="{{ route('proveedores.index') }}" class="text-decoration-none" style="font-size:13px;color:var(--color-text-muted);display:inline-flex;align-items:center;gap:6px;font-weight:500;transition:all 0.2s;">
+            <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Volver a proveedores
+        </a>
+    </div>
 
-<div class="mb-4">
-    <a href="{{ route('proveedores.index') }}" class="text-decoration-none" style="font-size:13px;color:var(--color-text-muted);display:inline-flex;align-items:center;gap:6px;font-weight:500;transition:all 0.2s;">
-        <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Volver
-    </a>
-</div>
+    <div class="card" style="border:1px solid var(--color-border);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);background:#fff;">
+        <div class="card-body p-4">
+            <h5 class="mb-4" style="font-family:'Outfit',sans-serif;font-weight:700;">Editar Proveedor</h5>
 
-<div class="card" style="border:1px solid var(--color-border);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);background:#fff;max-width:800px;">
-    <div class="card-body p-4">
-        <form method="POST" action="{{ route('proveedores.update', $proveedor->id) }}">
+            <form method="POST" action="{{ route('proveedores.update', $proveedor->id) }}">
             @csrf
             @method('PUT')
 
@@ -69,5 +68,6 @@
             </div>
         </form>
     </div>
+</div>
 </div>
 @endsection

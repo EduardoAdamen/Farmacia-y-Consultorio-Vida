@@ -61,7 +61,8 @@ class PedidoController extends Controller
         ]);
 
         // Usa una transacción para que el pedido y sus detalles se guarden juntos o no se guarde nada
-        DB::transaction(function() use ($request) {
+        $pedido = null;
+        DB::transaction(function() use ($request, &$pedido) {
             $monto_total = 0;
 
             // Crea el pedido con monto inicial en cero; se actualizará al terminar de procesar los productos
@@ -91,7 +92,9 @@ class PedidoController extends Controller
             $pedido->update(['monto_total' => $monto_total]);
         });
 
-        return redirect()->route('pedidos.index')->with('success', 'Pedido registrado exitosamente.');
+        return redirect()->route('pedidos.index')
+            ->with('pedido_creado_folio', $pedido->folio)
+            ->with('success', 'Pedido registrado exitosamente.');
     }
 
     // Muestra el detalle completo de un pedido: proveedor, productos y cantidades solicitadas

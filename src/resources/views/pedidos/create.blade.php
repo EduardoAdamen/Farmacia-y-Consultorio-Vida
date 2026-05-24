@@ -178,9 +178,22 @@
         
         hiddenInputs.innerHTML = ''; // limpiar
         
-        if (rows.length === 0) {
-            errorMsg.textContent = 'Debe agregar al menos un producto al pedido.';
-            errorDiv.classList.remove('d-none');
+        let selectedCount = 0;
+        rows.forEach(row => {
+            const prodId = row.querySelector('.pr-select').value;
+            if (prodId) {
+                selectedCount++;
+            }
+        });
+
+        if (rows.length === 0 || selectedCount === 0) {
+            Swal.fire({
+                title: 'Atención',
+                text: 'Debe seleccionar al menos un producto',
+                icon: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Aceptar'
+            });
             return false;
         }
 
@@ -202,7 +215,7 @@
                 errorMsg.textContent = 'La cantidad debe ser mayor a 0.';
             }
 
-            if (valid) {
+            if (valid && prodId) {
                 hiddenInputs.innerHTML += `<input type="hidden" name="productos[${c}][id]" value="${prodId}">`;
                 hiddenInputs.innerHTML += `<input type="hidden" name="productos[${c}][cantidad]" value="${qty}">`;
                 hiddenInputs.innerHTML += `<input type="hidden" name="productos[${c}][precio]" value="${price}">`;

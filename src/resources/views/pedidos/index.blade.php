@@ -148,3 +148,74 @@
     </div>
 </div>
 @endsection
+
+{{-- ── Modal de Éxito al crear pedido ─────────────────────── --}}
+@if(session('pedido_creado_folio'))
+<div class="modal fade" id="modalPedidoCreado" tabindex="-1" aria-labelledby="modalPedidoCreadoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+        <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+
+            {{-- Cabecera verde de éxito --}}
+            <div style="background:linear-gradient(135deg,#16a34a,#22c55e);padding:28px 24px 20px;text-align:center;">
+                <div style="width:56px;height:56px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <i data-lucide="check-circle" style="width:32px;height:32px;color:#fff;"></i>
+                </div>
+                <h5 id="modalPedidoCreadoLabel" style="color:#fff;font-family:'Outfit',sans-serif;font-weight:700;margin:0;font-size:18px;">
+                    ¡Éxito!
+                </h5>
+                <p style="color:rgba(255,255,255,0.85);font-size:13px;margin:4px 0 0;">
+                    Pedido creado exitosamente.
+                </p>
+            </div>
+
+            {{-- Cuerpo con detalles --}}
+            <div class="modal-body" style="padding:24px;">
+                <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px;">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <i data-lucide="hash" style="width:18px;height:18px;color:#16a34a;flex-shrink:0;"></i>
+                        <div>
+                            <div style="font-size:11px;color:#6B7280;text-transform:uppercase;font-weight:600;letter-spacing:0.4px;">Folio</div>
+                            <div style="font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;color:#111827;">
+                                {{ session('pedido_creado_folio') }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i data-lucide="clock" style="width:18px;height:18px;color:#D97706;flex-shrink:0;"></i>
+                        <div>
+                            <div style="font-size:11px;color:#6B7280;text-transform:uppercase;font-weight:600;letter-spacing:0.4px;">Estado</div>
+                            <div>
+                                <span style="font-size:13px;color:#D97706;background:#FEF3C7;padding:3px 10px;border-radius:20px;font-weight:600;">
+                                    Pendiente
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Pie con botón de cierre --}}
+            <div class="modal-footer" style="border:none;padding:0 24px 24px;justify-content:center;">
+                <button type="button" class="btn btn-accent px-5 py-2" data-bs-dismiss="modal"
+                        style="border-radius:8px;font-weight:600;font-size:14px;min-width:160px;">
+                    Aceptar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = new bootstrap.Modal(document.getElementById('modalPedidoCreado'));
+        modal.show();
+        // Recrea los íconos de Lucide dentro del modal al abrirse
+        document.getElementById('modalPedidoCreado').addEventListener('shown.bs.modal', function () {
+            lucide.createIcons();
+        });
+    });
+</script>
+@endpush
+@endif

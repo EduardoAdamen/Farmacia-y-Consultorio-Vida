@@ -10,11 +10,24 @@ use Illuminate\Support\Facades\DB;
 // Controlador que maneja las operaciones para administrar los proveedores del sistema
 class ProveedorController extends Controller
 {
-    // Muestra el listado de todos los proveedores activos junto con sus días de visita
-    public function index()
+    // Muestra el listado de proveedores activos o inactivos junto con sus días de visita
+    public function index(Request $request)
     {
-        $proveedores = Proveedor::activos()->with('diasVisita')->get();
-        return view('proveedores.index', compact('proveedores'));
+        $filtro = $request->input('filtro', 'activos');
+
+        $query = Proveedor::with('diasVisita');
+
+        if ($filtro === 'inactivos') {
+            $query->where('estado', 'inactivo');
+        } elseif ($filtro === 'todos') {
+            // Todos los estados
+        } else {
+            $query->where('estado', 'activo');
+        }
+
+        $proveedores = $query->orderBy('nombre_empresa')->get();
+
+        return view('proveedores.index', compact('proveedores', 'filtro'));
     }
 
     // Muestra el formulario para registrar un nuevo proveedor
@@ -71,19 +84,19 @@ class ProveedorController extends Controller
         return redirect()->route('proveedores.index')->with('success', 'Proveedor registrado exitosamente.');
     }
 
-    // Muestra el detalle de un proveedor activo con sus días de visita
+    // Muestra el detalle de un proveedor con sus días de visita
     public function show($id)
     {
-        $proveedor = Proveedor::activos()->findOrFail($id);
+        $proveedor = Proveedor::findOrFail($id);
         // Obtiene los días de visita como un arreglo simple de abreviaciones, o vacío si no tiene
         $diasVisita = $proveedor->diasVisita->pluck('dia_semana')->toArray() ?: [];
         return view('proveedores.show', compact('proveedor', 'diasVisita'));
     }
 
-    // Muestra el formulario para editar un proveedor activo existente
+    // Muestra el formulario para editar un proveedor existente
     public function edit($id)
     {
-        $proveedor = Proveedor::activos()->findOrFail($id);
+        $proveedor = Proveedor::findOrFail($id);
         // Extrae los días de visita actuales para preseleccionarlos en el formulario de edición
         $diasVisita = current($proveedor->diasVisita->pluck('dia_semana')->toArray()) ? $proveedor->diasVisita->pluck('dia_semana')->toArray() : [];
         return view('proveedores.edit', compact('proveedor', 'diasVisita'));
@@ -92,7 +105,7 @@ class ProveedorController extends Controller
     // Guarda los cambios realizados a un proveedor y actualiza sus días de visita
     public function update(Request $request, $id)
     {
-        $proveedor = Proveedor::activos()->findOrFail($id);
+        $proveedor = Proveedor::findOrFail($id);
 
         // Valida los datos del formulario antes de actualizar
         $request->validate([
@@ -144,17 +157,26 @@ class ProveedorController extends Controller
     // Da de baja un proveedor marcándolo como inactivo en lugar de eliminarlo permanentemente
     public function destroy($id)
     {
-        $proveedor = Proveedor::activos()->findOrFail($id);
+        $proveedor = Proveedor::findOrFail($id);
 
         // Impide dar de baja al proveedor si tiene pedidos que aún no han sido atendidos
         // Esto evita dejar pedidos pendientes sin proveedor asignado
         if ($proveedor->pedidos()->where('estado', 'pendiente')->exists()) {
-            return redirect()->route('proveedores.index')->with('error', 'No se puede eliminar el proveedor porque tiene pedidos pendientes.');
+            return redirect()->route('proveedores.index')->with('error', 'No se puede desactivar el proveedor porque tiene pedidos pendientes.');
         }
 
         // Se usa baja lógica (estado = inactivo) para conservar el historial del proveedor en el sistema
         $proveedor->update(['estado' => 'inactivo']);
 
-        return redirect()->route('proveedores.index')->with('success', 'Proveedor eliminado exitosamente.');
+        return redirect()->route('proveedores.index')->with('success', 'Proveedor desactivado exitosamente.');
+    }
+
+    // Reactiva un proveedor marcándolo como activo nuevamente
+    public function activar($id)
+    {
+        $proveedor = Proveedor::findOrFail($id);
+        $proveedor->update(['estado' => 'activo']);
+
+        return redirect()->route('proveedores.index')->with('success', 'Proveedor activado exitosamente.');
     }
 }

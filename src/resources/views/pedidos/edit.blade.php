@@ -202,9 +202,22 @@
 
         hiddenInputs.innerHTML = '';
 
-        if (rows.length === 0) {
-            errorMsg.textContent = 'Debe agregar al menos un producto al pedido.';
-            errorDiv.classList.remove('d-none');
+        let selectedCount = 0;
+        rows.forEach(row => {
+            const prodId = row.querySelector('.pr-select').value;
+            if (prodId) {
+                selectedCount++;
+            }
+        });
+
+        if (rows.length === 0 || selectedCount === 0) {
+            Swal.fire({
+                title: 'Atención',
+                text: 'Debe seleccionar al menos un producto',
+                icon: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Aceptar'
+            });
             return false;
         }
 
@@ -215,10 +228,17 @@
             const price  = parseFloat(row.querySelector('.pr-price').value);
             const qty    = parseInt(row.querySelector('.pr-qty').value);
 
-            if (!prodId) { valid = false; errorMsg.textContent = 'Seleccione un producto en todas las filas.'; }
-            if (qty < 1) { valid = false; errorMsg.textContent = 'La cantidad debe ser mayor a 0.'; }
+            if (!prodId) {
+                valid = false;
+                errorMsg.textContent = 'Seleccione un producto en todas las filas.';
+            }
 
-            if (valid) {
+            if (qty < 1) {
+                valid = false;
+                errorMsg.textContent = 'La cantidad debe ser mayor a 0.';
+            }
+
+            if (valid && prodId) {
                 hiddenInputs.innerHTML += `<input type="hidden" name="productos[${c}][id]"       value="${prodId}">`;
                 hiddenInputs.innerHTML += `<input type="hidden" name="productos[${c}][cantidad]" value="${qty}">`;
                 hiddenInputs.innerHTML += `<input type="hidden" name="productos[${c}][precio]"   value="${price}">`;
