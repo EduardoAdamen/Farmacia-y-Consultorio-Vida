@@ -9,32 +9,6 @@ Sistema web integral y profesional para la gestión de farmacias con consultorio
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge)](#)
 
-
-
----
-
-## 📚 Tabla de Contenidos
-
-1. [Descripción General](#descripción-general)
-2. [Características Principales](#características-principales)
-3. [Stack Tecnológico](#stack-tecnológico)
-4. [Arquitectura del Sistema](#arquitectura-del-sistema)
-5. [Estructura del Proyecto](#estructura-del-proyecto)
-6. [Requisitos Previos](#requisitos-previos)
-7. [Instalación y Configuración](#instalación-y-configuración)
-8. [Variables de Entorno](#variables-de-entorno)
-9. [Scripts Disponibles](#scripts-disponibles)
-10. [API y Endpoints](#api-y-endpoints)
-11. [Base de Datos y Modelo de Datos](#base-de-datos-y-modelo-de-datos)
-12. [Autenticación y Seguridad](#autenticación-y-seguridad)
-13. [Flujo Operativo General](#flujo-operativo-general)
-14. [Entorno de Contenedores (Docker)](#entorno-de-contenedores-docker)
-15. [Guía de Despliegue en Producción (AWS EC2)](#guía-de-despliegue-en-producción-aws-ec2)
-16. [Roadmap de Desarrollo](#roadmap-de-desarrollo)
-17. [Contribución](#contribución)
-18. [Licencia](#licencia)
-19. [Autor / Créditos](#autor--créditos)
-
 ---
 
 ## 📝 Descripción General
@@ -111,31 +85,7 @@ El sistema se basa en tecnologías modernas de código abierto seleccionadas por
 
 ## 📐 Arquitectura del Sistema
 
-El sistema implementa una **Arquitectura Monolítica Modular** siguiendo el patrón **MVC (Model-View-Controller)** provisto por Laravel.
-
-```mermaid
-graph TD
-    Client[Navegador del Usuario: Vendedor / Médico / Dueño] -->|HTTP Requests| Nginx[Servidor Nginx]
-    Nginx -->|Proxy Pass / PHP-FPM| PHP[Laravel PHP-FPM App Engine]
-    
-    subgraph Laravel Framework
-        Routes[Enrutador web.php] --> Middleware{Filtro de Roles / Sesión Activa}
-        Middleware -->|Autorizado| Controllers[Controladores de Dominio]
-        Controllers -->|Consulta / Escritura| Models[Modelos Eloquent]
-        Controllers -->|Renderiza| Views[Plantillas Blade + TailwindCSS v4]
-        Controllers -->|Lógica Compleja| Services[VentaService - Lógica FEFO]
-    end
-    
-    Models -->|Transacciones Atómicas| DB[(Base de Datos MySQL 8.0)]
-    Services -->|Lock For Update| DB
-    
-    subgraph Servicios Adicionales
-        PDF[Barryvdh-DOMPDF Generator]
-    end
-    
-    Controllers -->|Llama| PDF
-    PDF -->|Retorna Archivo Stream| Client
-```
+El sistema implementa una **Arquitectura Monolítica Modular** siguiendo el patrón **MVC (Modelo-Vista-Controlador)** provisto por Laravel.
 
 ### Características Clave de Diseño:
 1.  **Transaccionalidad Atómica**: Toda operación crítica (como registrar una venta o recibir un pedido de proveedor) está envuelta en un bloque `DB::transaction()` para asegurar que no queden datos inconsistentes en caso de fallos intermedios.
@@ -395,37 +345,6 @@ El motor seleccionado es **MySQL 8.0** configurado bajo el estándar de almacena
 
 ### Diagrama Simplificado de Relaciones de la Base de Datos
 
-```mermaid
-erDiagram
-    USUARIO ||--o{ KARDEX_PRODUCTO : registra
-    USUARIO ||--o{ PEDIDO : genera
-    USUARIO ||--o{ VENTA : realiza
-    USUARIO ||--o{ CITA : atiende_como_medico
-    USUARIO ||--o{ CONSULTA : realiza_como_medico
-    
-    PROVEEDOR ||--o{ DIA_VISITA_PROVEEDOR : tiene
-    PROVEEDOR ||--o{ PRODUCTO : surte
-    PROVEEDOR ||--o{ PEDIDO : recibe
-    
-    CATEGORIA ||--o{ PRODUCTO : clasifica
-    
-    PRODUCTO ||--o{ LOTE : se_divide_en
-    PRODUCTO ||--o{ KARDEX_PRODUCTO : registra_movimientos
-    PRODUCTO ||--o{ DETALLE_PEDIDO : contiene
-    PRODUCTO ||--o{ DETALLE_VENTA : se_vende_en
-    PRODUCTO ||--o{ DETALLE_RECETA : opcional_en
-    
-    PEDIDO ||--o{ DETALLE_PEDIDO : contiene
-    VENTA ||--o{ DETALLE_VENTA : contiene
-    VENTA ||--o{ RECETA : liquida
-    
-    EXPEDIENTE_CLINICO ||--o{ CITA : agenda
-    EXPEDIENTE_CLINICO ||--o{ CONSULTA : tiene
-    
-    CITA ||--o| CONSULTA : origina
-    CONSULTA ||--o| RECETA : prescribe
-    RECETA ||--o{ DETALLE_RECETA : detalla
-```
 
 ### Índices de Rendimiento Críticos (Incluidos en `init.sql`)
 Para garantizar la velocidad del sistema incluso con miles de registros de ventas y consultas, se definieron los siguientes índices estratégicos:
@@ -449,49 +368,12 @@ El sistema implementa sólidas prácticas de protección de datos basadas en los
     *   **Inyección SQL**: El uso riguroso del ORM Eloquent y el constructor de consultas de Laravel asegura el enlace de parámetros (Parameter Binding), anulando por completo la posibilidad de inyecciones SQL.
     *   **XSS (Cross-Site Scripting)**: La directiva de renderizado de Blade (`{{ }}`) aplica automáticamente la función `htmlspecialchars` de PHP para evitar la ejecución de scripts maliciosos inyectados por los usuarios.
 
----
-
-## 🔄 Flujo Operativo General
-
-El sistema unifica el ciclo comercial y clínico de un consultorio farmacéutico bajo el siguiente flujo continuo de datos:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor P as Paciente
-    actor M as Médico
-    actor V as Vendedor / Cajero
-    actor D as Dueño / Admin
-    
-    Note over P, M: Fase Clínica (Consultorio)
-    P->>M: Agenda una cita en recepción
-    M->>M: Abre Expediente Clínico Digital
-    M->>M: Registra Signos Vitales y Diagnóstico
-    M->>M: Emite Receta Digital (Genera Folio REC-XXXX)
-    M->>P: Entrega Receta Impresa en PDF
-    
-    Note over P, V: Fase Comercial (Farmacia / POS)
-    P->>V: Presenta Receta e indica medicamentos a comprar
-    V->>V: Escanea productos en la interfaz POS del sistema
-    alt Requiere Receta Médica
-        V->>V: Ingresa Folio REC-XXXX en la línea de venta
-        V->>V: El sistema valida que la receta esté ACTIVA en DB
-    end
-    V->>V: Procesa el pago y confirma la venta (Transacción)
-    Note over V: El sistema aplica algoritmo FEFO para descontar<br/>stock del Lote más próximo a caducar
-    Note over V: El sistema registra el movimiento de venta en Kardex<br/>y marca la receta interna como USADA
-    V->>P: Entrega ticket de venta y medicamentos surtidos
-    
-    Note over D: Fase Administrativa (Monitoreo)
-    D->>D: Consulta el Kardex inmutable para auditar movimientos
-    D->>D: Genera el Reporte de Ventas y descarga el balance en PDF
-```
 
 ---
 
 ## 🐳 Entorno de Contenedores (Docker)
 
-El sistema está completamente contenedorizado para garantizar que se ejecute de la misma manera en tu máquina local que en cualquier nube en producción. 
+El sistema está completamente contenedorizado para garantizar que se ejecute de la misma manera en tu máquina local que en cualquier nube en producción.
 
 ### Servicios Definidos en `docker-compose.yml`
 
@@ -583,6 +465,7 @@ El núcleo operativo del sistema está completado al 100%. Se proponen las sigui
 - [ ] **Módulo de Compras Sugeridas**: Generación automática de propuestas de pedidos a proveedores basada en el análisis de rotación de inventarios y stock mínimo.
 - [ ] **Modo Desconectado (Offline)**: Implementación de PWA (Progressive Web App) para permitir la realización de consultas y ventas básicas sin conexión a Internet, sincronizándose al recuperar la red.
 
+---
 
 ## 🤝 Contribución
 
@@ -602,9 +485,9 @@ Este proyecto está bajo la licencia **MIT**. Puedes consultar el archivo para m
 
 ---
 
-## 👥 Autor / Créditos
+## 👥 Autor y Créditos
 
-*   **Desarrollador Principal**: [Eduardo Adamen](https://github.com/EduardoAdamen)
+*   **Desarrollador Principal**: [Eduardo Adame](https://github.com/EduardoAdamen)
 *   **Organización / Contexto**: Proyecto de Ingeniería de Software para la gestión de la clínica y farmacia "Farmacia y Consultorio Vida".
 *   **Colaboradores de Prueba**:
     *   *Carlos Mendoza* (Rol: Dueño)
