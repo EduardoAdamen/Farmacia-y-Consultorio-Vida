@@ -9,31 +9,31 @@ Sistema web integral y profesional para la gestión de farmacias con consultorio
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge)](#)
 
-<!-- Agregar screenshot principal -->
+
 
 ---
 
 ## 📚 Tabla de Contenidos
 
-1. [Descripción General](#-descripción-general)
-2. [Características Principales](#-características-principales)
-3. [Stack Tecnológico](#-stack-tecnológico)
-4. [Arquitectura del Sistema](#-arquitectura-del-sistema)
-5. [Estructura del Proyecto](#-estructura-del-proyecto)
-6. [Requisitos Previos](#-requisitos-previos)
-7. [Instalación y Configuración](#-instalación-y-configuración)
-8. [Variables de Entorno](#-variables-de-entorno)
-9. [Scripts Disponibles](#-scripts-disponibles)
-10. [API y Endpoints](#-api-y-endpoints-rutas)
-11. [Base de Datos y Modelo de Datos](#-base-de-datos-y-modelo-de-datos)
-12. [Autenticación y Seguridad](#-autenticación-y-seguridad)
-13. [Flujo Operativo General](#-flujo-operativo-general)
-14. [Entorno de Contenedores (Docker)](#-entorno-de-contenedores-docker)
-15. [Guía de Despliegue en Producción (AWS EC2)](#-guía-de-despliegue-en-producción-aws-ec2)
-16. [Roadmap de Desarrollo](#-roadmap-de-desarrollo)
-17. [Contribución](#-contribución)
-18. [Licencia](#-licencia)
-29. [Autor / Créditos](#-autor--créditos)
+1. [Descripción General](#descripción-general)
+2. [Características Principales](#características-principales)
+3. [Stack Tecnológico](#stack-tecnológico)
+4. [Arquitectura del Sistema](#arquitectura-del-sistema)
+5. [Estructura del Proyecto](#estructura-del-proyecto)
+6. [Requisitos Previos](#requisitos-previos)
+7. [Instalación y Configuración](#instalación-y-configuración)
+8. [Variables de Entorno](#variables-de-entorno)
+9. [Scripts Disponibles](#scripts-disponibles)
+10. [API y Endpoints](#api-y-endpoints)
+11. [Base de Datos y Modelo de Datos](#base-de-datos-y-modelo-de-datos)
+12. [Autenticación y Seguridad](#autenticación-y-seguridad)
+13. [Flujo Operativo General](#flujo-operativo-general)
+14. [Entorno de Contenedores (Docker)](#entorno-de-contenedores-docker)
+15. [Guía de Despliegue en Producción (AWS EC2)](#guía-de-despliegue-en-producción-aws-ec2)
+16. [Roadmap de Desarrollo](#roadmap-de-desarrollo)
+17. [Contribución](#contribución)
+18. [Licencia](#licencia)
+19. [Autor / Créditos](#autor--créditos)
 
 ---
 
